@@ -1,0 +1,34 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ mvp ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      # 获取仓库名称并构建
+      # 如果你的仓库是 https://github.com/user/my-repo
+      # 这里的 base-href 会被自动设置为 /my-repo/
+      - name: Build Web
+        run: |
+          REPO_NAME="/${GITHUB_REPOSITORY#*/}/"
+          echo "Building with base-href: $REPO_NAME"
+          flutter config --enable-web
+          flutter pub get
+          flutter build web --release --base-href "$REPO_NAME"
+
+      # 部署到 gh-pages 分支
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
