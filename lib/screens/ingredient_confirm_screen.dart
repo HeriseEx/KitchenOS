@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:collection/collection.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
+import '../widgets/responsive_layout.dart';
 
 /// UI-New: 食材准备确认界面
 /// 在选定菜单后，进入制作步骤前，确认食材准备情况
@@ -74,151 +75,153 @@ class _IngredientConfirmScreenState extends State<IngredientConfirmScreen> {
       appBar: AppBar(
         title: const Text('食材准备确认'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.orange.withOpacity(0.1),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_outline, color: Colors.orange),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          '请确认以下食材已准备就绪，勾选确认后即可开始下一步。',
-                          style: TextStyle(color: Colors.orange[900]),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
+      body: ResponsiveLayout(
+        mobileBody: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  Container(
                     padding: const EdgeInsets.all(16),
-                    itemCount: _aggregatedIngredients.length,
-                    itemBuilder: (context, index) {
-                      final item = _aggregatedIngredients[index];
-                      final isChecked = _checkedIngredients[item.key] ?? false;
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        elevation: 0,
-                        color: isChecked 
-                            ? Theme.of(context).primaryColor.withOpacity(0.05) 
-                            : Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                            color: isChecked 
-                                ? Theme.of(context).primaryColor.withOpacity(0.3) 
-                                : Colors.grey.shade200,
-                          ),
-                        ),
-                        child: InkWell(
-                          onTap: () => _toggleItem(item.key),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Transform.scale(
-                                  scale: 1.2,
-                                  child: Checkbox(
-                                    value: isChecked,
-                                    onChanged: (_) => _toggleItem(item.key),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            item.name,
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: isChecked ? Colors.black : Colors.black87,
-                                              decoration: isChecked ? TextDecoration.lineThrough : null,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context).primaryColor.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              '${item.quantityStr}${item.unit}',
-                                              style: TextStyle(
-                                                color: Theme.of(context).primaryColor,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '用于: ${item.sourceRecipes.join("、")}',
-                                        style: TextStyle(
-                                          color: Colors.grey[500],
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        offset: const Offset(0, -4),
-                        blurRadius: 16,
-                      ),
-                    ],
-                  ),
-                  child: SafeArea(
+                    color: Colors.orange.withOpacity(0.1),
                     child: Row(
                       children: [
-                        TextButton(
-                          onPressed: _selectAll,
-                          child: Text(_isAllSelected ? '取消全选' : '全选'),
-                        ),
-                        const Spacer(),
-                        ElevatedButton(
-                          onPressed: _isAllSelected ? _proceed : null,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        const Icon(Icons.info_outline, color: Colors.orange),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '请确认以下食材已准备就绪，勾选确认后即可开始下一步。',
+                            style: TextStyle(color: Colors.orange[900]),
                           ),
-                          child: const Text('准备好了，下一步'),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _aggregatedIngredients.length,
+                      itemBuilder: (context, index) {
+                        final item = _aggregatedIngredients[index];
+                        final isChecked = _checkedIngredients[item.key] ?? false;
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          elevation: 0,
+                          color: isChecked 
+                              ? Theme.of(context).primaryColor.withOpacity(0.05) 
+                              : Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: isChecked 
+                                  ? Theme.of(context).primaryColor.withOpacity(0.3) 
+                                  : Colors.grey.shade200,
+                            ),
+                          ),
+                          child: InkWell(
+                            onTap: () => _toggleItem(item.key),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Transform.scale(
+                                    scale: 1.2,
+                                    child: Checkbox(
+                                      value: isChecked,
+                                      onChanged: (_) => _toggleItem(item.key),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              item.name,
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: isChecked ? Colors.black : Colors.black87,
+                                                decoration: isChecked ? TextDecoration.lineThrough : null,
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                '${item.quantityStr}${item.unit}',
+                                                style: TextStyle(
+                                                  color: Theme.of(context).primaryColor,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '用于: ${item.sourceRecipes.join("、")}',
+                                          style: TextStyle(
+                                            color: Colors.grey[500],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          offset: const Offset(0, -4),
+                          blurRadius: 16,
+                        ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      child: Row(
+                        children: [
+                          TextButton(
+                            onPressed: _selectAll,
+                            child: Text(_isAllSelected ? '取消全选' : '全选'),
+                          ),
+                          const Spacer(),
+                          ElevatedButton(
+                            onPressed: _isAllSelected ? _proceed : null,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                            ),
+                            child: const Text('准备好了，下一步'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 

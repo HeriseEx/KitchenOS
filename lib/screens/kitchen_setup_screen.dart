@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
+import '../widgets/responsive_layout.dart';
 
 /// UI-00: 厨房配置向导
 /// 首次引导用户配置厨房装备
@@ -49,30 +50,32 @@ class _KitchenSetupScreenState extends State<KitchenSetupScreen> {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          // 进度指示器
-          LinearProgressIndicator(
-            value: (_currentPage + 1) / 5,
-            backgroundColor: Colors.grey[200],
-          ),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (page) {
-                setState(() => _currentPage = page);
-              },
-              children: [
-                _buildWelcomePage(),
-                _buildStovePage(),
-                _buildPotPage(),
-                _buildCuttingBoardPage(),
-                _buildOvenPage(),
-              ],
+      body: ResponsiveLayout(
+        mobileBody: Column(
+          children: [
+            // 进度指示器
+            LinearProgressIndicator(
+              value: (_currentPage + 1) / 5,
+              backgroundColor: Colors.grey[200],
             ),
-          ),
-          _buildBottomNavigation(),
-        ],
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (page) {
+                  setState(() => _currentPage = page);
+                },
+                children: [
+                  _buildWelcomePage(),
+                  _buildStovePage(),
+                  _buildPotPage(),
+                  _buildCuttingBoardPage(),
+                  _buildOvenPage(),
+                ],
+              ),
+            ),
+            _buildBottomNavigation(),
+          ],
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
 import '../utils/utils.dart';
+import '../widgets/responsive_layout.dart';
 
 /// 主页 - 菜谱列表 (iOS 17 Inspired Responsive Redesign)
 class HomeScreen extends StatelessWidget {
@@ -113,14 +114,19 @@ class HomeScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 20, right: 10),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(50),
+          gradient: AppTheme.primaryGradient,
+          boxShadow: AppTheme.glowShadow,
+        ),
         child: FloatingActionButton.extended(
           onPressed: () => _showRecipeSelector(context),
-          elevation: 4,
-          backgroundColor: Theme.of(context).primaryColor,
+          elevation: 0,
+          highlightElevation: 0,
+          backgroundColor: Colors.transparent,
           icon: const Icon(Icons.restaurant_menu, color: Colors.white),
-          label: const Text('开始烹饪', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          label: const Text('开始烹饪', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         ),
       ),
@@ -178,14 +184,8 @@ class _RecipeCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppTheme.softShadow,
       ),
       child: Material(
         color: Colors.transparent,

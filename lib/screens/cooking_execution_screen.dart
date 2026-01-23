@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
 import '../utils/utils.dart';
+import '../widgets/responsive_layout.dart';
 
 /// UI-06: 烹饪执行页
 /// 实时显示当前步骤，支持计时和资源状态管理
@@ -73,57 +74,150 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // 进度条
-          LinearProgressIndicator(
-            value: (provider.currentStepIndex + 1) / plan.timeline.length,
-          ),
-          
-          // 时间统计
-          _TimeStatsBar(
-            elapsedSeconds: provider.elapsedSeconds,
-            activeCookingSeconds: provider.activeCookingSeconds,
-            totalSeconds: plan.metrics.totalDurationSeconds,
-          ),
-          
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // 当前步骤卡片
-                  _CurrentStepCard(
-                    node: currentNode,
-                    elapsed: _currentStepElapsed,
-                    isPaused: _isPaused,
-                    onComplete: () => _completeCurrentStep(provider),
-                    onCleaningComplete: currentNode.isCheckpoint
-                        ? () => _handleCleaningComplete(provider, currentNode)
-                        : null,
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // 资源状态
-                  _ResourceStatusSection(
-                    resources: provider.kitchenProfile?.resources ?? [],
-                    onResetResource: (id) => provider.resetResource(id),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // 即将到来的步骤
-                  _UpcomingStepsSection(
-                    timeline: plan.timeline,
-                    currentIndex: provider.currentStepIndex,
-                  ),
-                ],
-              ),
+      body: ResponsiveLayout(
+        mobileBody: _buildMobileLayout(context, provider, plan, currentNode),
+        desktopBody: _buildDesktopLayout(context, provider, plan, currentNode),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, AppProvider provider, CookingPlan plan, TimelineNode currentNode) {
+    return Column(
+      children: [
+        // 进度条
+        LinearProgressIndicator(
+          value: (provider.currentStepIndex + 1) / plan.timeline.length,
+        ),
+        
+        // 时间统计
+        _TimeStatsBar(
+          elapsedSeconds: provider.elapsedSeconds,
+          activeCookingSeconds: provider.activeCookingSeconds,
+          totalSeconds: plan.metrics.totalDurationSeconds,
+        ),
+        
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // 当前步骤卡片
+                _CurrentStepCard(
+                  node: currentNode,
+                  elapsed: _currentStepElapsed,
+                  isPaused: _isPaused,
+                  onComplete: () => _completeCurrentStep(provider),
+                  onCleaningComplete: currentNode.isCheckpoint
+                      ? () => _handleCleaningComplete(provider, currentNode)
+                      : null,
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // 资源状态
+                _ResourceStatusSection(
+                  resources: provider.kitchenProfile?.resources ?? [],
+                  onResetResource: (id) => provider.resetResource(id),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // 即将到来的步骤
+                _UpcomingStepsSection(
+                  timeline: plan.timeline,
+                  currentIndex: provider.currentStepIndex,
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, AppProvider provider, CookingPlan plan, TimelineNode currentNode) {
+    return Column(
+      children: [
+        LinearProgressIndicator(
+          value: (provider.currentStepIndex + 1) / plan.timeline.length,
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left Column: Main Task & Timer
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    children: [
+                      _TimeStatsBar(
+                        elapsedSeconds: provider.elapsedSeconds,
+                        activeCookingSeconds: provider.activeCookingSeconds,
+                        totalSeconds: plan.metrics.totalDurationSeconds,
+                      ),
+                      const SizedBox(height: 24),
+                      Expanded(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 600),
+                            child: _CurrentStepCard(
+                              node: currentNode,
+                              elapsed: _currentStepElapsed,
+                              isPaused: _isPaused,
+                              onComplete: () => _completeCurrentStep(provider),
+                              onCleaningComplete: currentNode.isCheckpoint
+                                  ? () => _handleCleaningComplete(provider, currentNode)
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 32),
+                // Right Column: Context Info
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    children: [
+                       Expanded(
+                         child: SingleChildScrollView(
+                           child: Column(
+                             children: [
+                               Card(
+                                 child: Padding(
+                                   padding: const EdgeInsets.all(16),
+                                   child: _ResourceStatusSection(
+                                     resources: provider.kitchenProfile?.resources ?? [],
+                                     onResetResource: (id) => provider.resetResource(id),
+                                   ),
+                                 ),
+                               ),
+                               const SizedBox(height: 24),
+                               Card(
+                                 child: Padding(
+                                   padding: const EdgeInsets.all(16),
+                                   child: _UpcomingStepsSection(
+                                     timeline: plan.timeline,
+                                     currentIndex: provider.currentStepIndex,
+                                   ),
+                                 ),
+                               ),
+                             ],
+                           ),
+                         ),
+                       ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -239,10 +333,22 @@ class _CurrentStepCard extends StatelessWidget {
     final progress = elapsed / node.durationSeconds;
 
     return Card(
-      elevation: 4,
-      color: isCheckpoint ? Colors.orange.shade50 : null,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      color: isCheckpoint ? Colors.orange.shade50 : Theme.of(context).cardTheme.color,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: isCheckpoint 
+            ? BorderSide(color: Colors.orange.withOpacity(0.3), width: 1)
+            : BorderSide.none,
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: isCheckpoint ? null : AppTheme.softShadow,
+        ),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             // 类型标签
@@ -291,13 +397,25 @@ class _CurrentStepCard extends StatelessWidget {
               Stack(
                 alignment: Alignment.center,
                 children: [
+                  // Background Ring
                   SizedBox(
-                    width: 150,
-                    height: 150,
+                    width: 200,
+                    height: 200,
+                    child: CircularProgressIndicator(
+                      value: 1.0,
+                      strokeWidth: 12,
+                      color: Colors.grey.shade100,
+                    ),
+                  ),
+                  // Progress Ring
+                  SizedBox(
+                    width: 200,
+                    height: 200,
                     child: CircularProgressIndicator(
                       value: progress.clamp(0, 1),
-                      strokeWidth: 8,
-                      backgroundColor: Colors.grey[200],
+                      strokeWidth: 12,
+                      strokeCap: StrokeCap.round,
+                      backgroundColor: Colors.transparent,
                       color: remaining <= 10 
                           ? Colors.red 
                           : Theme.of(context).primaryColor,
@@ -308,21 +426,30 @@ class _CurrentStepCard extends StatelessWidget {
                       Text(
                         AppUtils.formatDuration(remaining),
                         style: TextStyle(
-                          fontSize: 36,
+                          fontSize: 48,
                           fontWeight: FontWeight.bold,
-                          color: remaining <= 10 ? Colors.red : null,
+                          color: remaining <= 10 ? Colors.red : Colors.black,
+                          letterSpacing: -1,
                         ),
                       ),
                       if (isPaused)
-                        const Text(
-                          '已暂停',
-                          style: TextStyle(color: Colors.orange),
+                        Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            '已暂停',
+                            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                          ),
                         ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
             ],
             
             // 资源信息

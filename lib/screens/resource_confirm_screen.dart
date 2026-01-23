@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
+import '../widgets/responsive_layout.dart';
 
 /// UI-05a: 可用装备确认界面
 /// 在生成计划前让用户确认本次可用的资源
@@ -46,57 +47,59 @@ class _ResourceConfirmScreenState extends State<ResourceConfirmScreen> {
       appBar: AppBar(
         title: const Text('确认可用装备'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Card(
-                  color: Colors.blue.shade50,
-                  child: const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline, color: Colors.blue),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            '请确认本次烹饪可用的厨房装备。'
-                            '取消勾选不可用的装备，系统会据此调整烹饪计划。',
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ...groupedResources.entries.map((entry) => _buildResourceGroup(
-                  entry.key,
-                  entry.value,
-                )),
-                const SizedBox(height: 16),
-                if (_hasInsufficientResources())
+      body: ResponsiveLayout(
+        mobileBody: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
                   Card(
-                    color: Colors.orange.shade50,
+                    color: Colors.blue.shade50,
                     child: const Padding(
                       padding: EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(Icons.warning_amber, color: Colors.orange),
+                          Icon(Icons.info_outline, color: Colors.blue),
                           SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              '资源不足可能导致计划串行化，烹饪时间可能延长',
-                              style: TextStyle(color: Colors.orange),
+                              '请确认本次烹饪可用的厨房装备。'
+                              '取消勾选不可用的装备，系统会据此调整烹饪计划。',
+                              style: TextStyle(color: Colors.blue),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-              ],
-            ),
+                  const SizedBox(height: 16),
+                  ...groupedResources.entries.map((entry) => _buildResourceGroup(
+                    entry.key,
+                    entry.value,
+                  )),
+                  const SizedBox(height: 16),
+                  if (_hasInsufficientResources())
+                    Card(
+                      color: Colors.orange.shade50,
+                      child: const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Icon(Icons.warning_amber, color: Colors.orange),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                '资源不足可能导致计划串行化，烹饪时间可能延长',
+                                style: TextStyle(color: Colors.orange),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(

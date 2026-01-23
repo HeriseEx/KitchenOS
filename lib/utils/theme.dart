@@ -20,6 +20,36 @@ class AppTheme {
   static const Color occupiedResourceColor = Color(0xFF007AFF); // iOS Blue
   static const Color dirtyResourceColor = Color(0xFFFF9500);
 
+  // Pro Max UI Extensions
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF34C759), Color(0xFF30D158)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient warmGradient = LinearGradient(
+    colors: [Color(0xFFFF9500), Color(0xFFFFCC00)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static List<BoxShadow> get softShadow => [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.06),
+      blurRadius: 24,
+      offset: const Offset(0, 8),
+      spreadRadius: -4,
+    ),
+  ];
+
+  static List<BoxShadow> get glowShadow => [
+    BoxShadow(
+      color: primaryColor.withOpacity(0.3),
+      blurRadius: 20,
+      offset: const Offset(0, 8),
+    ),
+  ];
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,

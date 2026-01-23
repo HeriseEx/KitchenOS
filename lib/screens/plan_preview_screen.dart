@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
+import '../widgets/responsive_layout.dart';
 import '../utils/utils.dart';
 
 /// UI-05: 调度预览界面
@@ -32,47 +33,9 @@ class PlanPreviewScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // 计划摘要卡片
-          _PlanSummaryCard(plan: plan),
-          const SizedBox(height: 16),
-          
-          // 降级警告
-          if (plan.isDegraded) _DegradationWarning(plan: plan),
-          if (plan.warnings.isNotEmpty) _WarningsCard(warnings: plan.warnings),
-          
-          // 时间节省卡片
-          if (plan.metrics.savedSeconds > 0) 
-            _TimeSavedCard(savedSeconds: plan.metrics.savedSeconds),
-          
-          const SizedBox(height: 16),
-          
-          // 甘特图
-          const Text(
-            '时间轴',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          _GanttChart(timeline: plan.timeline),
-          
-          const SizedBox(height: 24),
-          
-          // 步骤列表
-          const Text(
-            '步骤详情',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          ...plan.timeline.asMap().entries.map((entry) => 
-            _TimelineNodeCard(
-              index: entry.key,
-              node: entry.value,
-              isLast: entry.key == plan.timeline.length - 1,
-            ),
-          ),
-        ],
+      body: ResponsiveLayout(
+        mobileBody: _buildMobileLayout(context, provider, plan),
+        desktopBody: _buildDesktopLayout(context, provider, plan),
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
@@ -87,6 +50,117 @@ class PlanPreviewScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, AppProvider provider, CookingPlan plan) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // 计划摘要卡片
+        _PlanSummaryCard(plan: plan),
+        const SizedBox(height: 16),
+        
+        // 降级警告
+        if (plan.isDegraded) _DegradationWarning(plan: plan),
+        if (plan.warnings.isNotEmpty) _WarningsCard(warnings: plan.warnings),
+        
+        // 时间节省卡片
+        if (plan.metrics.savedSeconds > 0) 
+          _TimeSavedCard(savedSeconds: plan.metrics.savedSeconds),
+        
+        const SizedBox(height: 16),
+        
+        // 甘特图
+        const Text(
+          '时间轴',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        _GanttChart(timeline: plan.timeline),
+        
+        const SizedBox(height: 24),
+        
+        // 步骤列表
+        const Text(
+          '步骤详情',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        ...plan.timeline.asMap().entries.map((entry) => 
+          _TimelineNodeCard(
+            index: entry.key,
+            node: entry.value,
+            isLast: entry.key == plan.timeline.length - 1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, AppProvider provider, CookingPlan plan) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left: Analysis & Chart
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _PlanSummaryCard(plan: plan),
+                  const SizedBox(height: 16),
+                  
+                  if (plan.isDegraded) _DegradationWarning(plan: plan),
+                  if (plan.warnings.isNotEmpty) _WarningsCard(warnings: plan.warnings),
+                  
+                  if (plan.metrics.savedSeconds > 0) 
+                    _TimeSavedCard(savedSeconds: plan.metrics.savedSeconds),
+                  
+                  const SizedBox(height: 24),
+                  
+                  const Text(
+                    '时间轴',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  _GanttChart(timeline: plan.timeline),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 32),
+          // Right: Steps List
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '步骤详情',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: plan.timeline.length,
+                    itemBuilder: (context, index) {
+                      return _TimelineNodeCard(
+                        index: index,
+                        node: plan.timeline[index],
+                        isLast: index == plan.timeline.length - 1,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -409,26 +483,35 @@ class _GanttBar extends StatelessWidget {
       builder: (context, constraints) {
         final totalWidth = constraints.maxWidth;
         return SizedBox(
-          height: 24,
+          height: 32,
           child: Stack(
             children: [
               Positioned(
                 left: totalWidth * startFraction,
-                width: (totalWidth * widthFraction).clamp(2, totalWidth),
-                top: 0,
-                bottom: 0,
+                width: (totalWidth * widthFraction).clamp(4, totalWidth),
+                top: 4,
+                bottom: 4,
                 child: Container(
                   decoration: BoxDecoration(
                     color: barColor,
-                    borderRadius: BorderRadius.circular(4),
+                    gradient: node.isCheckpoint ? null : AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: barColor.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text(
                     node.action,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 10,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
