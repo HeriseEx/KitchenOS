@@ -29,7 +29,14 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+# /build/
+/build/app
+/build/ios
+/build/linux
+/build/macos
+/build/windows
+# Allow build/web for vercel deployment
+!/build/web/
 
 # Symbolication related
 app.*.symbols
