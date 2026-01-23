@@ -57,8 +57,15 @@ class HomeScreen extends StatelessWidget {
                 ),
                 actions: [
                   _GlassActionButton(
+                    icon: Icons.calendar_today_outlined,
+                    onTap: () => Navigator.pushNamed(context, '/recommendation'),
+                    tooltip: '每日推荐',
+                  ),
+                  const SizedBox(width: 8),
+                  _GlassActionButton(
                     icon: Icons.settings_outlined,
                     onTap: () => Navigator.pushNamed(context, '/setup'),
+                    tooltip: '设置',
                   ),
                   const SizedBox(width: 16),
                 ],
@@ -133,8 +140,13 @@ class HomeScreen extends StatelessWidget {
 class _GlassActionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
+  final String? tooltip;
 
-  const _GlassActionButton({required this.icon, required this.onTap});
+  const _GlassActionButton({
+    required this.icon,
+    required this.onTap,
+    this.tooltip,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -147,6 +159,7 @@ class _GlassActionButton extends StatelessWidget {
       child: IconButton(
         icon: Icon(icon, color: Theme.of(context).primaryColor),
         onPressed: onTap,
+        tooltip: tooltip,
       ),
     );
   }
@@ -573,7 +586,7 @@ class _RecipeDetailSheet extends StatelessWidget implements _ScrollableWidget {
     Navigator.pop(context);
     Navigator.pushNamed(
       context,
-      '/resource-confirm',
+      '/ingredient-confirm',
       arguments: [recipe.id],
     );
   }
@@ -618,7 +631,7 @@ class _RecipeSelectorSheetState extends State<_RecipeSelectorSheet> {
     Navigator.pop(context);
     Navigator.pushNamed(
       context,
-      '/resource-confirm',
+      '/ingredient-confirm',
       arguments: _selectedIds.toList(),
     );
   }

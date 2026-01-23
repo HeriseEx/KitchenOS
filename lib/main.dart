@@ -53,6 +53,15 @@ class KitchenOSApp extends StatelessWidget {
         return MaterialPageRoute(
           builder: (_) => const KitchenSetupScreen(isInitialSetup: false),
         );
+      case '/recommendation':
+        return MaterialPageRoute(
+          builder: (_) => const RecommendationScreen(),
+        );
+      case '/ingredient-confirm':
+        final recipeIds = settings.arguments as List<String>? ?? [];
+        return MaterialPageRoute(
+          builder: (_) => IngredientConfirmScreen(recipeIds: recipeIds),
+        );
       case '/resource-confirm':
         final recipeIds = settings.arguments as List<String>? ?? [];
         return MaterialPageRoute(

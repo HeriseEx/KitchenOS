@@ -7,7 +7,246 @@ class SampleData {
       _tomatoEggs(),
       _kungPaoChicken(),
       _steamedFish(),
+      _milletCongee(),
+      _scrambledEggsWithToast(),
+      _braisedPorkRibs(),
+      _stirFriedVegetables(),
     ];
+  }
+
+  /// 小米粥 (早餐)
+  static Recipe _milletCongee() {
+    return Recipe(
+      id: 'recipe_millet_congee',
+      name: '小米粥',
+      description: '养胃早餐，清淡营养',
+      estimatedMinutes: 30,
+      servings: 2,
+      difficulty: '简单',
+      tags: ['早餐', '粥', '养胃'],
+      ingredients: [
+        Ingredient(id: 'ing_mc_1', name: '小米', quantity: 100, unit: '克'),
+        Ingredient(id: 'ing_mc_2', name: '水', quantity: 1000, unit: '毫升'),
+        Ingredient(id: 'ing_mc_3', name: '枸杞', quantity: 10, unit: '粒'),
+      ],
+      steps: [
+        Step(
+          id: 'step_mc_1',
+          recipeId: 'recipe_millet_congee',
+          action: '洗米',
+          description: '小米淘洗干净',
+          durationSeconds: 60,
+          resourceType: 'cuttingBoard',
+          parallelLevel: ParallelLevel.focused,
+          requiresCleaningAfter: false,
+          orderIndex: 0,
+        ),
+        Step(
+          id: 'step_mc_2',
+          recipeId: 'recipe_millet_congee',
+          action: '煮粥',
+          description: '水开后下入小米，转小火慢熬',
+          durationSeconds: 1500,
+          dependencies: ['step_mc_1'],
+          resourceType: 'stove',
+          parallelLevel: ParallelLevel.background,
+          requiresCleaningAfter: true,
+          orderIndex: 1,
+        ),
+        Step(
+          id: 'step_mc_3',
+          recipeId: 'recipe_millet_congee',
+          action: '加枸杞',
+          description: '出锅前5分钟加入枸杞',
+          durationSeconds: 300,
+          dependencies: ['step_mc_2'],
+          resourceType: 'stove',
+          parallelLevel: ParallelLevel.background,
+          requiresCleaningAfter: false,
+          orderIndex: 2,
+        ),
+      ],
+    );
+  }
+
+  /// 吐司炒蛋 (早餐)
+  static Recipe _scrambledEggsWithToast() {
+    return Recipe(
+      id: 'recipe_toast_eggs',
+      name: '美式炒蛋配吐司',
+      description: '经典西式早餐，营养均衡',
+      estimatedMinutes: 10,
+      servings: 1,
+      difficulty: '简单',
+      tags: ['早餐', '西餐', '快手'],
+      ingredients: [
+        Ingredient(id: 'ing_te_1', name: '鸡蛋', quantity: 2, unit: '个'),
+        Ingredient(id: 'ing_te_2', name: '吐司', quantity: 2, unit: '片'),
+        Ingredient(id: 'ing_te_3', name: '牛奶', quantity: 20, unit: '毫升'),
+        Ingredient(id: 'ing_te_4', name: '黄油', quantity: 10, unit: '克'),
+      ],
+      steps: [
+        Step(
+          id: 'step_te_1',
+          recipeId: 'recipe_toast_eggs',
+          action: '烤吐司',
+          description: '吐司放入烤箱或平底锅烘烤至金黄',
+          durationSeconds: 180,
+          resourceType: 'oven',
+          parallelLevel: ParallelLevel.background,
+          requiresCleaningAfter: false,
+          orderIndex: 0,
+        ),
+        Step(
+          id: 'step_te_2',
+          recipeId: 'recipe_toast_eggs',
+          action: '打蛋',
+          description: '鸡蛋加牛奶打散',
+          durationSeconds: 60,
+          resourceType: 'cuttingBoard',
+          parallelLevel: ParallelLevel.focused,
+          requiresCleaningAfter: false,
+          orderIndex: 1,
+        ),
+        Step(
+          id: 'step_te_3',
+          recipeId: 'recipe_toast_eggs',
+          action: '炒蛋',
+          description: '热锅融化黄油，倒入蛋液推炒至嫩滑',
+          durationSeconds: 120,
+          dependencies: ['step_te_2'],
+          resourceType: 'wok',
+          parallelLevel: ParallelLevel.focused,
+          requiresCleaningAfter: true,
+          orderIndex: 2,
+        ),
+      ],
+    );
+  }
+
+  /// 红烧排骨 (午/晚餐)
+  static Recipe _braisedPorkRibs() {
+    return Recipe(
+      id: 'recipe_pork_ribs',
+      name: '红烧排骨',
+      description: '色泽红亮，酥烂入味',
+      estimatedMinutes: 60,
+      servings: 3,
+      difficulty: '中等',
+      tags: ['硬菜', '下饭', '经典'],
+      ingredients: [
+        Ingredient(id: 'ing_pr_1', name: '猪排骨', quantity: 500, unit: '克'),
+        Ingredient(id: 'ing_pr_2', name: '冰糖', quantity: 20, unit: '克'),
+        Ingredient(id: 'ing_pr_3', name: '生抽', quantity: 20, unit: '毫升'),
+        Ingredient(id: 'ing_pr_4', name: '老抽', quantity: 10, unit: '毫升'),
+        Ingredient(id: 'ing_pr_5', name: '姜', quantity: 1, unit: '块'),
+        Ingredient(id: 'ing_pr_6', name: '葱', quantity: 2, unit: '根'),
+      ],
+      steps: [
+        Step(
+          id: 'step_pr_1',
+          recipeId: 'recipe_pork_ribs',
+          action: '焯水',
+          description: '排骨冷水下锅，煮出血沫后捞出洗净',
+          durationSeconds: 600,
+          resourceType: 'wok',
+          parallelLevel: ParallelLevel.focused,
+          requiresCleaningAfter: true,
+          orderIndex: 0,
+        ),
+        Step(
+          id: 'step_pr_2',
+          recipeId: 'recipe_pork_ribs',
+          action: '炒糖色',
+          description: '小火炒化冰糖至枣红色，下排骨翻炒上色',
+          durationSeconds: 300,
+          dependencies: ['step_pr_1'],
+          resourceType: 'wok',
+          parallelLevel: ParallelLevel.focused,
+          requiresCleaningAfter: false,
+          orderIndex: 1,
+        ),
+        Step(
+          id: 'step_pr_3',
+          recipeId: 'recipe_pork_ribs',
+          action: '炖煮',
+          description: '加入调料和热水，小火慢炖40分钟',
+          durationSeconds: 2400,
+          dependencies: ['step_pr_2'],
+          resourceType: 'stewPot',
+          parallelLevel: ParallelLevel.background,
+          requiresCleaningAfter: true,
+          orderIndex: 2,
+        ),
+        Step(
+          id: 'step_pr_4',
+          recipeId: 'recipe_pork_ribs',
+          action: '收汁',
+          description: '大火收浓汤汁',
+          durationSeconds: 300,
+          dependencies: ['step_pr_3'],
+          resourceType: 'wok',
+          parallelLevel: ParallelLevel.focused,
+          requiresCleaningAfter: false,
+          orderIndex: 3,
+        ),
+      ],
+    );
+  }
+
+  /// 炒青菜 (午/晚餐)
+  static Recipe _stirFriedVegetables() {
+    return Recipe(
+      id: 'recipe_vegetables',
+      name: '清炒时蔬',
+      description: '简单快手，补充维生素',
+      estimatedMinutes: 5,
+      servings: 2,
+      difficulty: '简单',
+      tags: ['素菜', '快手', '健康'],
+      ingredients: [
+        Ingredient(id: 'ing_v_1', name: '青菜', quantity: 400, unit: '克'),
+        Ingredient(id: 'ing_v_2', name: '蒜', quantity: 3, unit: '瓣'),
+        Ingredient(id: 'ing_v_3', name: '盐', quantity: 3, unit: '克'),
+      ],
+      steps: [
+        Step(
+          id: 'step_v_1',
+          recipeId: 'recipe_vegetables',
+          action: '洗菜切菜',
+          description: '青菜洗净切段，蒜拍碎',
+          durationSeconds: 120,
+          resourceType: 'cuttingBoard',
+          parallelLevel: ParallelLevel.focused,
+          requiresCleaningAfter: false,
+          orderIndex: 0,
+        ),
+        Step(
+          id: 'step_v_2',
+          recipeId: 'recipe_vegetables',
+          action: '爆香',
+          description: '热油爆香蒜末',
+          durationSeconds: 30,
+          dependencies: ['step_v_1'],
+          resourceType: 'wok',
+          parallelLevel: ParallelLevel.focused,
+          requiresCleaningAfter: false,
+          orderIndex: 1,
+        ),
+        Step(
+          id: 'step_v_3',
+          recipeId: 'recipe_vegetables',
+          action: '快炒',
+          description: '下入青菜大火快炒至断生，加盐调味',
+          durationSeconds: 120,
+          dependencies: ['step_v_2'],
+          resourceType: 'wok',
+          parallelLevel: ParallelLevel.focused,
+          requiresCleaningAfter: true,
+          orderIndex: 2,
+        ),
+      ],
+    );
   }
 
   /// 番茄炒蛋
