@@ -36,6 +36,29 @@ class TimelineNode {
 
   bool get isCheckpoint => type == TimelineNodeType.checkpoint;
   bool get isStep => type == TimelineNodeType.step;
+  
+  /// 判断是否为烹饪步骤（需要加热的步骤，自动倒计时）
+  /// 使用灶具、炒锅、炖锅、蒸锅、烤箱 = 烹饪步骤
+  bool get isCookingStep {
+    if (isCheckpoint) return false;
+    if (resourceId == null) return false;
+    // 根据resourceId前缀判断资源类型
+    final id = resourceId!.toLowerCase();
+    return id.startsWith('stove') || 
+           id.startsWith('wok') || 
+           id.startsWith('stew') || 
+           id.startsWith('steamer') || 
+           id.startsWith('oven');
+  }
+  
+  /// 判断是否为准备步骤（切菜、洗菜等，需要手动确认）
+  /// 使用案板或无资源 = 准备步骤
+  bool get isPrepStep {
+    if (isCheckpoint) return false;
+    if (resourceId == null) return true; // 无资源默认为准备步骤
+    final id = resourceId!.toLowerCase();
+    return id.startsWith('cutting');
+  }
 
   Map<String, dynamic> toJson() {
     return {

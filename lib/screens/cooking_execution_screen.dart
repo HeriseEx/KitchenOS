@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
+import '../services/voice_command_service.dart';
 import '../utils/utils.dart';
 import '../widgets/responsive_layout.dart';
 
@@ -19,17 +20,62 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
   Timer? _timer;
   int _currentStepElapsed = 0;
   bool _isPaused = false;
+  
+  // 语音控制服务
+  final VoiceCommandService _voiceService = VoiceCommandService();
+  bool _voiceEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _startTimer();
+    _initVoiceControl();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _voiceService.dispose();
     super.dispose();
+  }
+  
+  /// 初始化语音控制
+  Future<void> _initVoiceControl() async {
+    await _voiceService.initialize();
+    _voiceService.onCommandRecognized = _handleVoiceCommand;
+  }
+  
+  /// 处理语音命令
+  void _handleVoiceCommand(VoiceCommand command) {
+    final provider = context.read<AppProvider>();
+    
+    switch (command) {
+      case VoiceCommand.nextStep:
+      case VoiceCommand.complete:
+        _completeCurrentStep(provider);
+        // 播放反馈音或振动
+        break;
+      case VoiceCommand.pause:
+        if (!_isPaused) {
+          setState(() => _isPaused = true);
+        }
+        break;
+      case VoiceCommand.resume:
+        if (_isPaused) {
+          setState(() => _isPaused = false);
+        }
+        break;
+      case VoiceCommand.unknown:
+        break;
+    }
+  }
+  
+  /// 切换语音控制
+  void _toggleVoiceControl() {
+    setState(() {
+      _voiceEnabled = !_voiceEnabled;
+      _voiceService.setEnabled(_voiceEnabled);
+    });
   }
 
   void _startTimer() {
@@ -67,6 +113,14 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
       appBar: AppBar(
         title: Text('步骤 ${provider.currentStepIndex + 1}/${plan.timeline.length}'),
         actions: [
+          // 语音控制按钮
+          _VoiceControlButton(
+            isEnabled: _voiceEnabled,
+            isListening: _voiceService.isListening,
+            isAvailable: _voiceService.isAvailable,
+            onToggle: _toggleVoiceControl,
+          ),
+          const SizedBox(width: 8),
           IconButton(
             icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
             onPressed: () => setState(() => _isPaused = !_isPaused),
@@ -74,9 +128,22 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
           ),
         ],
       ),
-      body: ResponsiveLayout(
-        mobileBody: _buildMobileLayout(context, provider, plan, currentNode),
-        desktopBody: _buildDesktopLayout(context, provider, plan, currentNode),
+      body: Column(
+        children: [
+          // 语音状态提示条
+          if (_voiceEnabled)
+            _VoiceStatusBar(
+              isListening: _voiceService.isListening,
+              lastWords: _voiceService.lastWords,
+              statusMessage: _voiceService.statusMessage,
+            ),
+          Expanded(
+            child: ResponsiveLayout(
+              mobileBody: _buildMobileLayout(context, provider, plan, currentNode),
+              desktopBody: _buildDesktopLayout(context, provider, plan, currentNode),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -397,67 +464,17 @@ class _CurrentStepCard extends StatelessWidget {
             
             const SizedBox(height: 24),
             
-            // 计时器
+            // 计时器 - 只对烹饪步骤显示倒计时
             if (!isCheckpoint) ...[
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                    // Background Ring
-                    SizedBox(
-                      width: 220,
-                      height: 220,
-                      child: CircularProgressIndicator(
-                        value: 1.0,
-                        strokeWidth: 16,
-                        color: Colors.grey.shade100,
-                      ),
-                    ),
-                    // Progress Ring
-                    SizedBox(
-                      width: 220,
-                      height: 220,
-                      child: ShaderMask(
-                        shaderCallback: (bounds) {
-                          return AppTheme.luxuryGradient.createShader(bounds);
-                        },
-                        child: CircularProgressIndicator(
-                          value: progress.clamp(0, 1),
-                          strokeWidth: 16,
-                          strokeCap: StrokeCap.round,
-                          backgroundColor: Colors.transparent,
-                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white), // Color ignored by ShaderMask
-                        ),
-                      ),
-                    ),
-                  Column(
-                    children: [
-                      Text(
-                        AppUtils.formatDuration(remaining),
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: remaining <= 10 ? Colors.red : Colors.black,
-                          letterSpacing: -1,
-                        ),
-                      ),
-                      if (isPaused)
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            '已暂停',
-                            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
+              // 烹饪步骤：显示倒计时环
+              if (node.isCookingStep) ...[
+                _buildTimerRing(context, progress, remaining, isPaused),
+                const SizedBox(height: 32),
+              ] else ...[
+                // 准备步骤：不显示倒计时，显示手动确认提示
+                _buildPrepStepIndicator(context),
+                const SizedBox(height: 32),
+              ],
             ],
             
             // 资源信息
@@ -500,6 +517,222 @@ class _CurrentStepCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// 构建烹饪计时器环（使用 CustomPaint 实现渐变效果）
+  Widget _buildTimerRing(BuildContext context, double progress, int remaining, bool isPaused) {
+    final isUrgent = remaining <= 10;
+    
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // 外圈阴影光晕
+        Container(
+          width: 240,
+          height: 240,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: (isUrgent ? Colors.red : AppTheme.accentColor).withOpacity(0.2),
+                blurRadius: 30,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
+        ),
+        // 背景环
+        Container(
+          width: 220,
+          height: 220,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.grey.shade50,
+            border: Border.all(color: Colors.grey.shade200, width: 2),
+          ),
+        ),
+        // 进度环 (使用 CustomPaint 实现渐变)
+        SizedBox(
+          width: 220,
+          height: 220,
+          child: CustomPaint(
+            painter: _GradientCircularProgressPainter(
+              progress: progress.clamp(0.0, 1.0),
+              strokeWidth: 14,
+              gradient: isUrgent 
+                  ? const LinearGradient(colors: [Colors.red, Colors.orange])
+                  : AppTheme.luxuryGradient,
+            ),
+          ),
+        ),
+        // 内圈玻璃效果
+        Container(
+          width: 180,
+          height: 180,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.9),
+                Colors.white.withOpacity(0.6),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+        ),
+        // 时间显示
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              AppUtils.formatDuration(remaining),
+              style: TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.w800,
+                color: isUrgent ? Colors.red : const Color(0xFF1C1C1E),
+                letterSpacing: -2,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '剩余时间',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[500],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (isPaused)
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.pause, size: 14, color: Colors.orange),
+                    SizedBox(width: 4),
+                    Text(
+                      '已暂停',
+                      style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w600, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// 构建准备步骤指示器（手动确认，无倒计时）
+  Widget _buildPrepStepIndicator(BuildContext context) {
+    return Container(
+      width: 220,
+      height: 220,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.blue.shade50,
+            Colors.cyan.shade50,
+          ],
+        ),
+        border: Border.all(color: Colors.blue.withOpacity(0.2), width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.1),
+            blurRadius: 20,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.touch_app_outlined,
+            size: 48,
+            color: Colors.blue.shade400,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '手动操作',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.blue.shade700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '完成后点击下方按钮',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.blue.shade400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 渐变环形进度条画笔
+class _GradientCircularProgressPainter extends CustomPainter {
+  final double progress;
+  final double strokeWidth;
+  final Gradient gradient;
+
+  _GradientCircularProgressPainter({
+    required this.progress,
+    required this.strokeWidth,
+    required this.gradient,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+    
+    // 创建渐变着色器
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final paint = Paint()
+      ..shader = gradient.createShader(rect)
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    // 从顶部开始绘制 (-90度 = -π/2)
+    const startAngle = -3.14159265359 / 2;
+    final sweepAngle = 2 * 3.14159265359 * progress;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepAngle,
+      false,
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _GradientCircularProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
 
@@ -709,6 +942,167 @@ class _CookingCompleteScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 语音控制按钮
+class _VoiceControlButton extends StatelessWidget {
+  final bool isEnabled;
+  final bool isListening;
+  final bool isAvailable;
+  final VoidCallback onToggle;
+
+  const _VoiceControlButton({
+    required this.isEnabled,
+    required this.isListening,
+    required this.isAvailable,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: isEnabled 
+            ? const LinearGradient(colors: [Color(0xFF34C759), Color(0xFF30D158)])
+            : null,
+        color: isEnabled ? null : Colors.grey.shade200,
+        boxShadow: isEnabled ? [
+          BoxShadow(
+            color: const Color(0xFF34C759).withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ] : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isListening ? Icons.mic : Icons.mic_none,
+                  size: 18,
+                  color: isEnabled ? Colors.white : Colors.grey.shade600,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  isEnabled ? '语音开' : '语音',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isEnabled ? Colors.white : Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 语音状态提示条
+class _VoiceStatusBar extends StatelessWidget {
+  final bool isListening;
+  final String lastWords;
+  final String statusMessage;
+
+  const _VoiceStatusBar({
+    required this.isListening,
+    required this.lastWords,
+    required this.statusMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isListening 
+              ? [const Color(0xFF34C759).withOpacity(0.1), const Color(0xFF30D158).withOpacity(0.05)]
+              : [Colors.grey.shade100, Colors.grey.shade50],
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: isListening ? const Color(0xFF34C759).withOpacity(0.3) : Colors.grey.shade200,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          // 状态指示器
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isListening ? const Color(0xFF34C759) : Colors.grey,
+              boxShadow: isListening ? [
+                BoxShadow(
+                  color: const Color(0xFF34C759).withOpacity(0.5),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                ),
+              ] : null,
+            ),
+          ),
+          const SizedBox(width: 12),
+          // 状态信息
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isListening ? '正在聆听...' : statusMessage,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isListening ? const Color(0xFF34C759) : Colors.grey.shade600,
+                  ),
+                ),
+                if (lastWords.isNotEmpty)
+                  Text(
+                    '识别: $lastWords',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+          // 支持的命令提示
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '说 "下一步" 或 "完成"',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
