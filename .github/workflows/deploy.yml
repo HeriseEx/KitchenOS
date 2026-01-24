@@ -18,20 +18,32 @@ jobs:
         with:
           channel: 'stable'
 
-      # 获取仓库名称并构建
-      # 如果你的仓库是 https://github.com/user/my-repo
-      # 这里的 base-href 会被自动设置为 /my-repo/
-      - name: Build Web
+      # 1. Build and Deploy for Vercel (Root Path)
+      - name: Build Web for Vercel
         run: |
-          REPO_NAME="/${GITHUB_REPOSITORY#*/}/"
-          echo "Building with base-href: $REPO_NAME"
           flutter config --enable-web
           flutter pub get
-          flutter build web --release --base-href "$REPO_NAME"
+          flutter build web --release --base-href "/"
+          # Copy vercel.json to build output for SPA routing support
+          cp vercel.json build/web/
 
-      # 部署到 gh-pages 分支
-      - name: Deploy
+      - name: Deploy to vercel-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
+          publish_branch: vercel-pages
+
+      # 2. Build and Deploy for GitHub Pages (Repo Path)
+      - name: Build Web for GitHub Pages
+        run: |
+          REPO_NAME="/${GITHUB_REPOSITORY#*/}/"
+          echo "Building with base-href: $REPO_NAME"
+          flutter build web --release --base-href "$REPO_NAME"
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          publish_branch: gh-pages
