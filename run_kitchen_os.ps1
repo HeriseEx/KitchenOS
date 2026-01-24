@@ -29,8 +29,16 @@ if ($process) {
 
 # 4. Start Flutter Web Server
 Write-Host "Starting KitchenOS on port $port..." -ForegroundColor Green
-# Set-Location "kitchen_os"
-Start-Process -FilePath "flutter" -ArgumentList "run -d web-server --web-port $port --web-hostname 0.0.0.0" -NoNewWindow -PassThru
 
-Write-Host "KitchenOS is starting... Logs will appear in the console window if attached, or check flutter_run.log if redirected." -ForegroundColor Cyan
-Write-Host "Access the app at http://localhost:$port" -ForegroundColor Cyan
+# Get the script's directory (where this .ps1 file is located)
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+# Change to the script's directory (kitchen_os folder)
+Set-Location $scriptDir
+
+Write-Host "Working directory: $(Get-Location)" -ForegroundColor Yellow
+
+# Run flutter directly (blocks and shows output in console)
+flutter run -d web-server --web-port $port --web-hostname 0.0.0.0
+
+Write-Host "KitchenOS server stopped." -ForegroundColor Cyan

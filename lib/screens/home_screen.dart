@@ -117,7 +117,7 @@ class HomeScreen extends StatelessWidget {
       floatingActionButton: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50),
-          gradient: AppTheme.primaryGradient,
+          gradient: AppTheme.luxuryGradient,
           boxShadow: AppTheme.glowShadow,
         ),
         child: FloatingActionButton.extended(
@@ -126,7 +126,7 @@ class HomeScreen extends StatelessWidget {
           highlightElevation: 0,
           backgroundColor: Colors.transparent,
           icon: const Icon(Icons.restaurant_menu, color: Colors.white),
-          label: const Text('开始烹饪', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          label: const Text('开始烹饪', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         ),
       ),
@@ -159,11 +159,19 @@ class _GlassActionButton extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color?.withOpacity(0.5),
+        color: Colors.white.withOpacity(0.6),
         shape: BoxShape.circle,
+        border: Border.all(color: Colors.white.withOpacity(0.8), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ]
       ),
       child: IconButton(
-        icon: Icon(icon, color: Theme.of(context).primaryColor),
+        icon: Icon(icon, color: Colors.black87, size: 22),
         onPressed: onTap,
         tooltip: tooltip,
       ),
@@ -186,12 +194,13 @@ class _RecipeCard extends StatelessWidget {
         color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(24),
         boxShadow: AppTheme.softShadow,
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 0.5),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _showRecipeDetail(context),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           child: isGrid ? _buildGridContent(context) : _buildListContent(context),
         ),
       ),
@@ -207,13 +216,20 @@ class _RecipeCard extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).primaryColor.withOpacity(0.05),
+                  Theme.of(context).primaryColor.withOpacity(0.02)
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(
               Icons.restaurant,
               size: 32,
-              color: Theme.of(context).primaryColor,
+              color: Theme.of(context).primaryColor.withOpacity(0.8),
             ),
           ),
           const SizedBox(width: 16),
@@ -273,13 +289,27 @@ class _RecipeCard extends StatelessWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).primaryColor.withOpacity(0.08),
+                      Theme.of(context).primaryColor.withOpacity(0.03)
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    )
+                  ]
                 ),
                 child: Icon(
                   Icons.restaurant,
                   size: 48,
-                  color: Theme.of(context).primaryColor,
+                  color: Theme.of(context).primaryColor.withOpacity(0.8),
                 ),
               ),
             ),
@@ -413,8 +443,15 @@ class _BlurModal extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+                color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.85),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                  )
+                ]
               ),
               child: child is _ScrollableWidget 
                 ? (child as _ScrollableWidget).copyWithController(scrollController)

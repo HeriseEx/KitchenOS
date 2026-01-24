@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
 import '../widgets/responsive_layout.dart';
+import '../utils/utils.dart';
 
 /// UI-New: 食材准备确认界面
 /// 在选定菜单后，进入制作步骤前，确认食材准备情况
@@ -108,34 +109,41 @@ class _IngredientConfirmScreenState extends State<IngredientConfirmScreen> {
                           margin: const EdgeInsets.only(bottom: 12),
                           elevation: 0,
                           color: isChecked 
-                              ? Theme.of(context).primaryColor.withOpacity(0.05) 
+                              ? AppTheme.accentColor.withOpacity(0.05) 
                               : Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             side: BorderSide(
                               color: isChecked 
-                                  ? Theme.of(context).primaryColor.withOpacity(0.3) 
+                                  ? AppTheme.accentColor.withOpacity(0.5) 
                                   : Colors.grey.shade200,
+                              width: isChecked ? 1.5 : 1,
                             ),
                           ),
                           child: InkWell(
                             onTap: () => _toggleItem(item.key),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             child: Padding(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(20),
                               child: Row(
                                 children: [
-                                  Transform.scale(
-                                    scale: 1.2,
-                                    child: Checkbox(
-                                      value: isChecked,
-                                      onChanged: (_) => _toggleItem(item.key),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4),
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: isChecked ? AppTheme.accentColor : Colors.transparent,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isChecked ? AppTheme.accentColor : Colors.grey.shade300,
+                                        width: 2
                                       ),
                                     ),
+                                    child: isChecked 
+                                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                                        : null,
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,15 +161,15 @@ class _IngredientConfirmScreenState extends State<IngredientConfirmScreen> {
                                             ),
                                             const Spacer(),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                               decoration: BoxDecoration(
-                                                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                                color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
                                                 borderRadius: BorderRadius.circular(8),
                                               ),
                                               child: Text(
                                                 '${item.quantityStr}${item.unit}',
                                                 style: TextStyle(
-                                                  color: Theme.of(context).primaryColor,
+                                                  color: Theme.of(context).colorScheme.secondary,
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 16,
                                                 ),

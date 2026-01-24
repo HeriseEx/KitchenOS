@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
 import '../widgets/responsive_layout.dart';
+import '../utils/utils.dart';
 
 /// UI-00: 厨房配置向导
 /// 首次引导用户配置厨房装备
@@ -54,9 +55,17 @@ class _KitchenSetupScreenState extends State<KitchenSetupScreen> {
         mobileBody: Column(
           children: [
             // 进度指示器
-            LinearProgressIndicator(
-              value: (_currentPage + 1) / 5,
-              backgroundColor: Colors.grey[200],
+            Container(
+              height: 4,
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  value: (_currentPage + 1) / 5,
+                  backgroundColor: Colors.grey[200],
+                  valueColor: AlwaysStoppedAnimation(AppTheme.accentColor),
+                ),
+              ),
             ),
             Expanded(
               child: PageView(
@@ -365,10 +374,15 @@ class _KitchenSetupScreenState extends State<KitchenSetupScreen> {
         ),
         IconButton(
           onPressed: value > min ? () => onChanged(value - 1) : null,
-          icon: const Icon(Icons.remove_circle_outline),
+          icon: Icon(Icons.remove_circle_outline, color: value > min ? AppTheme.primaryColor : Colors.grey[300]),
         ),
-        SizedBox(
-          width: 40,
+        Container(
+          width: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Text(
             '$value',
             textAlign: TextAlign.center,
@@ -377,7 +391,7 @@ class _KitchenSetupScreenState extends State<KitchenSetupScreen> {
         ),
         IconButton(
           onPressed: value < max ? () => onChanged(value + 1) : null,
-          icon: const Icon(Icons.add_circle_outline),
+          icon: Icon(Icons.add_circle_outline, color: value < max ? AppTheme.primaryColor : Colors.grey[300]),
         ),
       ],
     );

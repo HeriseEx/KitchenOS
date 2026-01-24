@@ -338,17 +338,22 @@ class _CurrentStepCard extends StatelessWidget {
       color: isCheckpoint ? Colors.orange.shade50 : Theme.of(context).cardTheme.color,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         side: isCheckpoint 
             ? BorderSide(color: Colors.orange.withOpacity(0.3), width: 1)
-            : BorderSide.none,
+            : BorderSide(color: Colors.black.withOpacity(0.03), width: 1),
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(32),
+          gradient: isCheckpoint ? null : LinearGradient(
+             colors: [Colors.white, Colors.grey.shade50],
+             begin: Alignment.topLeft,
+             end: Alignment.bottomRight,
+          ),
           boxShadow: isCheckpoint ? null : AppTheme.softShadow,
         ),
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(32),
         child: Column(
           children: [
             // 类型标签
@@ -397,30 +402,33 @@ class _CurrentStepCard extends StatelessWidget {
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Background Ring
-                  SizedBox(
-                    width: 200,
-                    height: 200,
-                    child: CircularProgressIndicator(
-                      value: 1.0,
-                      strokeWidth: 12,
-                      color: Colors.grey.shade100,
+                    // Background Ring
+                    SizedBox(
+                      width: 220,
+                      height: 220,
+                      child: CircularProgressIndicator(
+                        value: 1.0,
+                        strokeWidth: 16,
+                        color: Colors.grey.shade100,
+                      ),
                     ),
-                  ),
-                  // Progress Ring
-                  SizedBox(
-                    width: 200,
-                    height: 200,
-                    child: CircularProgressIndicator(
-                      value: progress.clamp(0, 1),
-                      strokeWidth: 12,
-                      strokeCap: StrokeCap.round,
-                      backgroundColor: Colors.transparent,
-                      color: remaining <= 10 
-                          ? Colors.red 
-                          : Theme.of(context).primaryColor,
+                    // Progress Ring
+                    SizedBox(
+                      width: 220,
+                      height: 220,
+                      child: ShaderMask(
+                        shaderCallback: (bounds) {
+                          return AppTheme.luxuryGradient.createShader(bounds);
+                        },
+                        child: CircularProgressIndicator(
+                          value: progress.clamp(0, 1),
+                          strokeWidth: 16,
+                          strokeCap: StrokeCap.round,
+                          backgroundColor: Colors.transparent,
+                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white), // Color ignored by ShaderMask
+                        ),
+                      ),
                     ),
-                  ),
                   Column(
                     children: [
                       Text(

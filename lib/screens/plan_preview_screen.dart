@@ -182,16 +182,24 @@ class _PlanSummaryCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.timer,
-                  color: Theme.of(context).primaryColor,
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withOpacity(0.05),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.timer,
+                    color: Theme.of(context).primaryColor,
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Text(
                   '预计用时 ${plan.metrics.totalDurationFormatted}',
                   style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -1,
                   ),
                 ),
               ],
@@ -494,13 +502,13 @@ class _GanttBar extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     color: barColor,
-                    gradient: node.isCheckpoint ? null : AppTheme.primaryGradient,
+                    gradient: node.isCheckpoint ? null : AppTheme.luxuryGradient,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: barColor.withOpacity(0.3),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        color: barColor.withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
