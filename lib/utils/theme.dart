@@ -86,7 +86,6 @@ class AppTheme {
         primary: primaryColor,
         secondary: accentColor,
         surface: surfaceColor,
-        background: backgroundColor,
         error: errorColor,
         brightness: Brightness.light,
       ),
@@ -220,7 +219,6 @@ class AppTheme {
         seedColor: primaryColor,
         brightness: Brightness.dark,
         surface: darkSurface,
-        background: darkBg,
       ),
       appBarTheme: const AppBarTheme(
         centerTitle: true,
