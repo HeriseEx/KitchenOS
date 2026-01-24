@@ -110,6 +110,7 @@ class WebSpeechService extends ChangeNotifier {
   String _errorDetail = '';
   String _selectedLocaleId = 'zh-CN';
   DateTime _lastCommandTime = DateTime.fromMillisecondsSinceEpoch(0);
+  Timer? _silenceTimer; // 防抖计时器
   
   // 命令回调
   Function(VoiceCommand)? onCommandRecognized;
@@ -208,6 +209,7 @@ class WebSpeechService extends ChangeNotifier {
       _recognition!.onstart = ((JSAny? event) {
         debugPrint('WebSpeech: onstart');
         _isListening = true;
+        _lastWords = ''; // 清除上一次的文字
         _statusMessage = '正在聆听...';
         _errorDetail = '说 "下一步" 或 "完成"';
         notifyListeners();
@@ -216,6 +218,7 @@ class WebSpeechService extends ChangeNotifier {
       _recognition!.onend = ((JSAny? event) {
         debugPrint('WebSpeech: onend');
         _isListening = false;
+        _silenceTimer?.cancel(); // 取消计时器
         
         // 如果启用了持续监听，自动重启
         if (_isEnabled) {
@@ -275,27 +278,19 @@ class WebSpeechService extends ChangeNotifier {
           _lastWords = transcript;
           debugPrint('WebSpeech: Recognized "$transcript" (final: $isFinal)');
           
+          // 重置静默计时器
+          _silenceTimer?.cancel();
+          _silenceTimer = Timer(const Duration(milliseconds: 1500), () {
+            // 如果1.5秒内没有新的语音输入，强制尝试解析命令
+            debugPrint('WebSpeech: Silence detected, forcing command check');
+            _checkCommand(transcript, force: true);
+          });
+          
           if (isFinal || _selectedLocaleId == 'zh-Hans') { // 四川话模式下也尝试使用interim结果
-            // 解析命令
-            final command = _parseCommand(transcript);
-            if (command != VoiceCommand.unknown) {
-              
-              // 防止短时间内重复触发命令
-              final now = DateTime.now();
-              if (now.difference(_lastCommandTime) > const Duration(seconds: 2)) {
-                 debugPrint('WebSpeech: Command recognized: $command');
-                _statusMessage = '命令: ${_commandToString(command)}';
-                _lastCommandTime = now;
-                onCommandRecognized?.call(command);
-                
-                // 如果是中间结果触发了命令，可以考虑暂时停止识别以免重复
-                if (!isFinal) {
-                   _recognition?.abort(); // 或 stop
-                   // 稍后自动重启由 onend 处理
-                }
-              }
-            }
+             _checkCommand(transcript, force: isFinal);
           } else {
+            // 尝试检查是否有命令，但不强制
+            _checkCommand(transcript, force: false);
             _statusMessage = '听到: $transcript';
           }
           
@@ -307,6 +302,37 @@ class WebSpeechService extends ChangeNotifier {
     }
   }
   
+  /// 检查并执行命令
+  void _checkCommand(String transcript, {bool force = false}) {
+    // 解析命令
+    final command = _parseCommand(transcript);
+    
+    // 如果匹配到命令
+    if (command != VoiceCommand.unknown) {
+      final now = DateTime.now();
+      
+      // 防止重复触发: 距离上次命令超过2秒，或者是强制触发(静默检测)
+      if (now.difference(_lastCommandTime) > const Duration(seconds: 2) || force) {
+        
+        // 如果是强制触发(静默)，但距离上次命令太近，仍然跳过
+        if (now.difference(_lastCommandTime) < const Duration(milliseconds: 1000)) {
+          return;
+        }
+        
+        debugPrint('WebSpeech: Command recognized: $command (force: $force)');
+        _statusMessage = '命令: ${_commandToString(command)}';
+        _lastCommandTime = now;
+        onCommandRecognized?.call(command);
+        
+        // 触发命令后，取消静默计时器
+        _silenceTimer?.cancel();
+        
+        // 重启识别以清除上下文
+        _recognition?.abort();
+      }
+    }
+  }
+
   String _commandToString(VoiceCommand command) {
     switch (command) {
       case VoiceCommand.nextStep: return '下一步';
@@ -448,6 +474,7 @@ class WebSpeechService extends ChangeNotifier {
   
   @override
   void dispose() {
+    _silenceTimer?.cancel();
     try {
       _recognition?.abort();
     } catch (e) {
