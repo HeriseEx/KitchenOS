@@ -74062,8 +74062,8 @@ return q}}catch(m){p=A.aj(m)
 A.cd().$1("WebSpeech: Error checking mobile device: "+A.l(p))}return!1},
 eL(){var s=0,r=A.R(t.y),q,p=this,o,n
 var $async$eL=A.S(function(a,b){if(a===1)return A.O(b,r)
-for(;;)switch(s){case 0:try{if(!p.a2Z()){p.r="\u9700\u8981\u5b89\u5168\u8fde\u63a5"
-p.w="\u8bf7\u4f7f\u7528 HTTPS \u6216 localhost \u8bbf\u95ee"
+for(;;)switch(s){case 0:try{if(!p.a2Z()){p.r="\u4e0d\u5b89\u5168\u7684\u73af\u5883"
+p.w="\u8bf7\u4f7f\u7528HTTPS\u8bbf\u95ee\u4ee5\u542f\u7528\u9ea6\u514b\u98ce"
 p.b=!1
 p.M()
 q=!1
