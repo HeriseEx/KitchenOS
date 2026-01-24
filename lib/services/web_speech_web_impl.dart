@@ -277,8 +277,11 @@ class WebSpeechService extends ChangeNotifier {
             });
           }
         } else {
-          _statusMessage = '已停止聆听';
-          _errorDetail = '';
+          // 只在没有错误详情时才覆盖状态为"已停止聆听"
+          // 防止 onend 覆盖 onerror 设置的错误信息
+          if (_errorDetail.isEmpty) {
+            _statusMessage = '已停止聆听';
+          }
           notifyListeners();
         }
       }).toJS;
@@ -436,7 +439,7 @@ class WebSpeechService extends ChangeNotifier {
         _statusMessage = '未检测到语音';
         _errorDetail = '请对着麦克风说话';
         // 在移动设备上，no-speech 是常见的（静默超时），应该自动重启
-        shouldAutoRestart = _isMobileDevice() && _isEnabled;
+        shouldAutoRestart = (_isMobileDevice() || _isEnabled); // 只要启用了就尝试重启
         break;
       case 'network':
         _statusMessage = '网络错误';
@@ -460,7 +463,7 @@ class WebSpeechService extends ChangeNotifier {
         _isEnabled = false;
         break;
       default:
-        _statusMessage = '识别错误';
+        _statusMessage = '识别错误 ($error)';
         _errorDetail = error;
     }
     
