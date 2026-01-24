@@ -228,6 +228,7 @@ class WebSpeechService extends ChangeNotifier {
         }
       } catch (e) {
         debugPrint('WebSpeech: Permission query failed (ignoring): $e');
+        // If query fails, we assume it's okay to proceed and let getUserMedia fail if needed
       }
       
       _statusMessage = '语音识别就绪';
@@ -462,8 +463,9 @@ class WebSpeechService extends ChangeNotifier {
     switch (error) {
       case 'not-allowed':
         _statusMessage = '麦克风权限被拒绝';
-        // 根据当前环境提供适当的错误提示
-        _errorDetail = _getPermissionErrorDetail();
+        // 根据当前环境提供适当的错误提示，并附带原始错误信息
+        final detail = _getPermissionErrorDetail();
+        _errorDetail = '$detail\n(Raw error: not-allowed)';
         _isEnabled = false;
         break;
       case 'no-speech':
@@ -495,7 +497,7 @@ class WebSpeechService extends ChangeNotifier {
         break;
       default:
         _statusMessage = '识别错误 ($error)';
-        _errorDetail = error;
+        _errorDetail = '$error\n${event.message}'; // Include full browser message if available
     }
     
     _isListening = false;
