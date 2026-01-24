@@ -9,7 +9,10 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/index.html",
+      "headers": {
+        "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload"
+      }
     }
   ]
 }

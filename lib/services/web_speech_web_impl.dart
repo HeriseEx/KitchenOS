@@ -183,8 +183,8 @@ class WebSpeechService extends ChangeNotifier {
       
       // 检查是否在安全上下文中 (HTTPS 或 localhost)
       if (!_isSecureContext()) {
-        _statusMessage = '需要安全连接';
-        _errorDetail = '请使用 HTTPS 或 localhost 访问';
+        _statusMessage = '不安全的环境';
+        _errorDetail = '请使用HTTPS访问以启用麦克风';
         _isAvailable = false;
         notifyListeners();
         return false;
