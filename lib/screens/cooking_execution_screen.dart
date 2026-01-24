@@ -236,7 +236,7 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
             child: Padding(
               padding: EdgeInsets.only(right: 16, top: 4),
               child: Text(
-                'v1.0.0+1 (Debug)', // Hardcoded for now, ideal to read from package_info
+                'v1.0.0+2 (Debug)', // Hardcoded for now, ideal to read from package_info
                 style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ),
