@@ -220,7 +220,8 @@ class WebSpeechService extends ChangeNotifier {
           
           if (stateStr == 'denied') {
              _statusMessage = '麦克风权限已拒绝';
-             _errorDetail = 'Permission API returned: denied';
+             // This is the CRITICAL error message you need to see in the popup
+             _errorDetail = 'Permission API returned: denied\n(Check Google App permissions on Android)';
              _isAvailable = false; 
              notifyListeners();
              return false;
