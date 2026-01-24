@@ -74183,7 +74183,7 @@ s=q.d=!1
 break
 case"no-speech":q.r="\u672a\u68c0\u6d4b\u5230\u8bed\u97f3"
 q.w="\u8bf7\u5bf9\u7740\u9ea6\u514b\u98ce\u8bf4\u8bdd"
-s=q.zY()&&q.d
+s=q.zY()||q.d
 break
 case"network":q.r="\u7f51\u7edc\u9519\u8bef"
 q.w="\u8bf7\u68c0\u67e5\u7f51\u7edc\u8fde\u63a5"
@@ -74199,7 +74199,7 @@ case"service-not-allowed":q.r="\u8bed\u97f3\u670d\u52a1\u4e0d\u53ef\u7528"
 q.w=q.zY()?"\u8bf7\u786e\u4fdd Google \u5e94\u7528\u5df2\u5b89\u88c5\u5e76\u6709\u9ea6\u514b\u98ce\u6743\u9650":"\u6d4f\u89c8\u5668\u8bed\u97f3\u670d\u52a1\u4e0d\u53ef\u7528"
 s=q.d=!1
 break
-default:q.r="\u8bc6\u522b\u9519\u8bef"
+default:q.r="\u8bc6\u522b\u9519\u8bef ("+p+")"
 q.w=p}r=q.c=!1
 q.M()
 if(s?!q.e:r){A.cd().$1("WebSpeech: Auto-restarting after error: "+p)
@@ -74290,8 +74290,7 @@ r.M()
 q=this.b
 s=q?100:500
 A.cd().$1("WebSpeech: Scheduling restart in "+A.l(s)+"ms (mobile: "+q+")")
-A.n0(A.dn(0,s,0),new A.a8J(r),t.P)}}else{r.r="\u5df2\u505c\u6b62\u8046\u542c"
-r.w=""
+A.n0(A.dn(0,s,0),new A.a8J(r),t.P)}}else{if(r.w.length===0)r.r="\u5df2\u505c\u6b62\u8046\u542c"
 r.M()}},
 $S:30}
 A.a8J.prototype={
