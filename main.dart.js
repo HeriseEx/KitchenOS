@@ -74756,7 +74756,7 @@ a17(a){var s,r,q=this,p=a.error
 A.bZ().$1("WebSpeech: Error: "+p)
 s=!1
 switch(p){case"not-allowed":q.r="\u9ea6\u514b\u98ce\u6743\u9650\u88ab\u62d2\u7edd"
-q.w=q.a08()
+q.w=q.a08()+"\n(Raw error: not-allowed)"
 s=q.d=!1
 break
 case"no-speech":q.r="\u672a\u68c0\u6d4b\u5230\u8bed\u97f3"
@@ -74778,7 +74778,7 @@ q.w=q.A5()?"\u8bf7\u786e\u4fdd Google \u5e94\u7528\u5df2\u5b89\u88c5\u5e76\u6709
 s=q.d=!1
 break
 default:q.r="\u8bc6\u522b\u9519\u8bef ("+p+")"
-q.w=p}r=q.c=!1
+q.w=p+"\n"+A.k(a.message)}r=q.c=!1
 q.N()
 if(s?!q.e:r){A.bZ().$1("WebSpeech: Auto-restarting after error: "+p)
 q.e=!0
