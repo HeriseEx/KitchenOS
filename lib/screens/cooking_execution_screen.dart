@@ -23,7 +23,7 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
   
   // 语音控制服务
   final VoiceCommandService _voiceService = VoiceCommandService();
-  bool _voiceEnabled = false;
+  bool _voiceEnabled = true; // 默认开启语音控制
 
   @override
   void initState() {
@@ -41,8 +41,19 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
   
   /// 初始化语音控制
   Future<void> _initVoiceControl() async {
-    await _voiceService.initialize();
+    final success = await _voiceService.initialize();
     _voiceService.onCommandRecognized = _handleVoiceCommand;
+    
+    // 默认开启时自动开始监听
+    if (success && _voiceEnabled) {
+      _voiceService.setEnabled(true);
+      if (mounted) setState(() {});
+    } else if (!success && mounted) {
+      // 初始化失败时更新UI状态
+      setState(() {
+        _voiceEnabled = false;
+      });
+    }
   }
   
   /// 处理语音命令
@@ -136,6 +147,7 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
               isListening: _voiceService.isListening,
               lastWords: _voiceService.lastWords,
               statusMessage: _voiceService.statusMessage,
+              errorDetail: _voiceService.errorDetail,
             ),
           Expanded(
             child: ResponsiveLayout(
@@ -1017,11 +1029,13 @@ class _VoiceStatusBar extends StatelessWidget {
   final bool isListening;
   final String lastWords;
   final String statusMessage;
+  final String errorDetail;
 
   const _VoiceStatusBar({
     required this.isListening,
     required this.lastWords,
     required this.statusMessage,
+    this.errorDetail = '',
   });
 
   @override
@@ -1074,7 +1088,17 @@ class _VoiceStatusBar extends StatelessWidget {
                     color: isListening ? const Color(0xFF34C759) : Colors.grey.shade600,
                   ),
                 ),
-                if (lastWords.isNotEmpty)
+                if (errorDetail.isNotEmpty && !isListening)
+                  Text(
+                    errorDetail,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.orange.shade700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                else if (lastWords.isNotEmpty)
                   Text(
                     '识别: $lastWords',
                     style: TextStyle(

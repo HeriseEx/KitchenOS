@@ -22,6 +22,7 @@ class VoiceCommandService extends ChangeNotifier {
   bool _isEnabled = false;
   String _lastWords = '';
   String _statusMessage = '未初始化';
+  String _errorDetail = '';
   
   // 命令回调
   Function(VoiceCommand)? onCommandRecognized;
@@ -32,30 +33,73 @@ class VoiceCommandService extends ChangeNotifier {
   bool get isEnabled => _isEnabled;
   String get lastWords => _lastWords;
   String get statusMessage => _statusMessage;
+  String get errorDetail => _errorDetail;
   
   /// 初始化语音识别
   Future<bool> initialize() async {
     try {
+      // Web平台检查
+      if (kIsWeb) {
+        debugPrint('Voice: Running on Web platform');
+      }
+      
+      _statusMessage = '正在初始化...';
+      notifyListeners();
+      
       _isAvailable = await _speechToText.initialize(
         onStatus: _onStatus,
         onError: (error) {
           debugPrint('Voice error: ${error.errorMsg}');
-          _statusMessage = '识别错误: ${error.errorMsg}';
+          _errorDetail = error.errorMsg;
+          
+          // 提供更友好的错误信息
+          if (error.errorMsg.contains('not-allowed') || 
+              error.errorMsg.contains('permission')) {
+            _statusMessage = '请允许麦克风权限';
+          } else if (error.errorMsg.contains('network')) {
+            _statusMessage = '网络错误';
+          } else {
+            _statusMessage = '识别错误';
+          }
           notifyListeners();
         },
       );
       
       if (_isAvailable) {
         _statusMessage = '语音识别就绪';
+        _errorDetail = '';
       } else {
-        _statusMessage = '语音识别不可用';
+        // 检查具体原因
+        if (kIsWeb) {
+          _statusMessage = '请使用Chrome并允许麦克风';
+          _errorDetail = 'Web Speech API需要Chrome浏览器和麦克风权限';
+        } else {
+          _statusMessage = '语音识别不可用';
+          _errorDetail = '设备不支持语音识别';
+        }
       }
       
       notifyListeners();
       return _isAvailable;
     } catch (e) {
       debugPrint('Voice init error: $e');
-      _statusMessage = '初始化失败';
+      
+      // 提供更详细的错误信息
+      final errorStr = e.toString();
+      if (errorStr.contains('NotAllowedError') || errorStr.contains('permission')) {
+        _statusMessage = '麦克风权限被拒绝';
+        _errorDetail = '请在浏览器设置中允许麦克风访问';
+      } else if (errorStr.contains('NotFoundError')) {
+        _statusMessage = '未找到麦克风';
+        _errorDetail = '请确保设备有麦克风';
+      } else if (errorStr.contains('NotSupportedError')) {
+        _statusMessage = '浏览器不支持';
+        _errorDetail = '请使用Chrome或Edge浏览器';
+      } else {
+        _statusMessage = '初始化失败';
+        _errorDetail = errorStr.length > 50 ? errorStr.substring(0, 50) : errorStr;
+      }
+      
       _isAvailable = false;
       notifyListeners();
       return false;
