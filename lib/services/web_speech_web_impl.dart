@@ -220,7 +220,12 @@ class WebSpeechService extends ChangeNotifier {
   void _createRecognition() {
     try {
       _recognition = SpeechRecognition();
-      _recognition!.continuous = true;
+      
+      // 移动端优化：Android Chrome 中 continuous=true 可能会导致识别立即停止
+      // 如果检测到是移动设备，使用 continuous=false 并依赖自动重启
+      final isMobile = _isMobileDevice();
+      _recognition!.continuous = !isMobile; 
+      
       _recognition!.interimResults = true;
       _recognition!.lang = _selectedLocaleId;
       _recognition!.maxAlternatives = 1;
@@ -242,33 +247,35 @@ class WebSpeechService extends ChangeNotifier {
         _silenceTimer?.cancel(); // 取消计时器
         
         // 如果启用了持续监听，自动重启
-        if (_isEnabled && !_isRestarting) {
-          _isRestarting = true;
-          _statusMessage = '重新启动监听...';
-          notifyListeners();
-          
-          // Android/移动设备使用更短的延迟 (250ms)，桌面端使用 500ms
-          final restartDelay = _isMobileDevice() ? 250 : 500;
-          debugPrint('WebSpeech: Scheduling restart in ${restartDelay}ms (mobile: ${_isMobileDevice()})');
-          
-          Future.delayed(Duration(milliseconds: restartDelay), () {
-            if (_isEnabled && !_isListening) {
-              try {
-                _startRecognition();
-              } catch (e) {
-                debugPrint('WebSpeech: Restart failed: $e');
+        if (_isEnabled) {
+          if (!_isRestarting) {
+            _isRestarting = true;
+            _statusMessage = '保持监听中...'; // 状态提示更友好
+            notifyListeners();
+            
+            // 移动设备重启延迟非常短，接近无缝
+            final restartDelay = isMobile ? 100 : 500;
+            debugPrint('WebSpeech: Scheduling restart in ${restartDelay}ms (mobile: $isMobile)');
+            
+            Future.delayed(Duration(milliseconds: restartDelay), () {
+              if (_isEnabled && !_isListening) {
+                try {
+                  _startRecognition();
+                } catch (e) {
+                  debugPrint('WebSpeech: Restart failed: $e');
+                  _isRestarting = false;
+                  // 重试一次
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    if (_isEnabled && !_isListening) {
+                      _startRecognition();
+                    }
+                  });
+                }
+              } else {
                 _isRestarting = false;
-                // 重试一次
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (_isEnabled && !_isListening) {
-                    _startRecognition();
-                  }
-                });
               }
-            } else {
-              _isRestarting = false;
-            }
-          });
+            });
+          }
         } else {
           _statusMessage = '已停止聆听';
           _errorDetail = '';
