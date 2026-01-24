@@ -202,7 +202,9 @@ class WebSpeechService extends ChangeNotifier {
       // Explicit permission query before starting (for clearer errors)
       // This is a proactive check, actual request happens on start()
       try {
-        final permissions = globalContext['navigator']!['permissions'] as JSObject?;
+        final navigator = globalContext['navigator'] as JSObject?;
+        final permissions = navigator?['permissions'] as JSObject?;
+        
         if (permissions != null) {
           final queryPromise = permissions.callMethod('query'.toJS, 
               {'name': 'microphone'}.jsify());
