@@ -4,14 +4,65 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../utils/utils.dart';
 
-class RecommendationScreen extends StatelessWidget {
+class RecommendationScreen extends StatefulWidget {
   const RecommendationScreen({super.key});
+
+  @override
+  State<RecommendationScreen> createState() => _RecommendationScreenState();
+}
+
+class _RecommendationScreenState extends State<RecommendationScreen> {
+  // 已选择的菜谱ID列表
+  final Set<String> _selectedRecipeIds = {};
+
+  void _toggleSelection(String recipeId) {
+    setState(() {
+      if (_selectedRecipeIds.contains(recipeId)) {
+        _selectedRecipeIds.remove(recipeId);
+      } else {
+        _selectedRecipeIds.add(recipeId);
+      }
+    });
+  }
+
+  void _confirmSelection() {
+    if (_selectedRecipeIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('请至少选择一道菜'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    Navigator.pushNamed(
+      context,
+      '/ingredient-confirm',
+      arguments: _selectedRecipeIds.toList(),
+    );
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedRecipeIds.clear();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('每日推荐'),
+        actions: [
+          if (_selectedRecipeIds.isNotEmpty)
+            TextButton.icon(
+              onPressed: _clearSelection,
+              icon: const Icon(Icons.clear, size: 18),
+              label: const Text('清空'),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey),
+            ),
+        ],
       ),
       body: Consumer<AppProvider>(
         builder: (context, provider, _) {
@@ -32,31 +83,35 @@ class RecommendationScreen extends StatelessWidget {
             (r.tags.contains('清淡') || r.tags.contains('素菜') || r.tags.contains('蒸菜') || r.tags.contains('健康'))
           ).toList();
           
-          // Fallback: If dinner/lunch lists are empty, loosely distribute
-          // For demo purposes, we can allow overlap or just simple filtering above is fine.
-          
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         '今日食谱',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        '为您精心搭配的一日三餐',
+                        _selectedRecipeIds.isEmpty 
+                            ? '点击卡片选择想做的菜品'
+                            : '已选择 ${_selectedRecipeIds.length} 道菜',
                         style: TextStyle(
-                          color: Colors.grey,
+                          color: _selectedRecipeIds.isEmpty 
+                              ? Colors.grey 
+                              : AppTheme.accentColor,
                           fontSize: 16,
+                          fontWeight: _selectedRecipeIds.isEmpty 
+                              ? FontWeight.normal 
+                              : FontWeight.w600,
                         ),
                       ),
                     ],
@@ -78,6 +133,22 @@ class RecommendationScreen extends StatelessWidget {
           );
         },
       ),
+      // 底部确认按钮
+      floatingActionButton: _selectedRecipeIds.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: _confirmSelection,
+              backgroundColor: AppTheme.accentColor,
+              icon: const Icon(Icons.check, color: Colors.white),
+              label: Text(
+                '开始制作 (${_selectedRecipeIds.length})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -145,9 +216,14 @@ class RecommendationScreen extends StatelessWidget {
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final recipe = recipes[index];
+            final isSelected = _selectedRecipeIds.contains(recipe.id);
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _RecommendationCard(recipe: recipe),
+              child: _RecommendationCard(
+                recipe: recipe,
+                isSelected: isSelected,
+                onTap: () => _toggleSelection(recipe.id),
+              ),
             );
           },
           childCount: recipes.length,
@@ -159,23 +235,30 @@ class RecommendationScreen extends StatelessWidget {
 
 class _RecommendationCard extends StatelessWidget {
   final Recipe recipe;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  const _RecommendationCard({required this.recipe});
+  const _RecommendationCard({
+    required this.recipe,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: isSelected ? 4 : 2,
+      shadowColor: isSelected 
+          ? AppTheme.accentColor.withOpacity(0.3) 
+          : Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: isSelected 
+            ? BorderSide(color: AppTheme.accentColor, width: 2)
+            : BorderSide.none,
+      ),
       child: InkWell(
-        onTap: () {
-           Navigator.pushNamed(
-            context,
-            '/ingredient-confirm',
-            arguments: [recipe.id],
-          );
-        },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -185,13 +268,17 @@ class _RecommendationCard extends StatelessWidget {
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.08),
+                  color: isSelected 
+                      ? AppTheme.accentColor.withOpacity(0.15)
+                      : Theme.of(context).primaryColor.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.restaurant_menu,
                   size: 32,
-                  color: Theme.of(context).primaryColor,
+                  color: isSelected 
+                      ? AppTheme.accentColor
+                      : Theme.of(context).primaryColor,
                 ),
               ),
               const SizedBox(width: 16),
@@ -201,9 +288,10 @@ class _RecommendationCard extends StatelessWidget {
                   children: [
                     Text(
                       recipe.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: isSelected ? AppTheme.accentColor : null,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -224,14 +312,29 @@ class _RecommendationCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
+              // 选择指示器
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: isSelected 
+                      ? AppTheme.accentColor
+                      : Colors.grey[100],
                   shape: BoxShape.circle,
+                  boxShadow: isSelected ? [
+                    BoxShadow(
+                      color: AppTheme.accentColor.withOpacity(0.4),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ] : null,
                 ),
-                child: const Icon(Icons.add, size: 20),
+                child: Icon(
+                  isSelected ? Icons.check : Icons.add,
+                  size: 20,
+                  color: isSelected ? Colors.white : Colors.grey[600],
+                ),
               ),
             ],
           ),

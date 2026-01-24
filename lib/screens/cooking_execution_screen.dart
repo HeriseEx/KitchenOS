@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
-import '../services/voice_command_service.dart';
+import '../services/web_speech_service.dart';
 import '../utils/utils.dart';
 import '../widgets/responsive_layout.dart';
 
@@ -22,7 +22,7 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
   bool _isPaused = false;
   
   // 语音控制服务
-  final VoiceCommandService _voiceService = VoiceCommandService();
+  final WebSpeechService _voiceService = WebSpeechService();
   bool _voiceEnabled = true; // 默认开启语音控制
 
   @override
@@ -48,11 +48,6 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
     if (success && _voiceEnabled) {
       _voiceService.setEnabled(true);
       if (mounted) setState(() {});
-    } else if (!success && mounted) {
-      // 初始化失败时更新UI状态
-      setState(() {
-        _voiceEnabled = false;
-      });
     }
   }
   
@@ -87,6 +82,56 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
       _voiceEnabled = !_voiceEnabled;
       _voiceService.setEnabled(_voiceEnabled);
     });
+  }
+  
+  /// 显示方言选择菜单
+  void _showLocaleMenu(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '选择语音识别语言',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ...supportedLocales.map((locale) => ListTile(
+                leading: Radio<String>(
+                  value: locale.id,
+                  groupValue: _voiceService.selectedLocaleId,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _voiceService.setLocale(value);
+                      });
+                      Navigator.pop(ctx);
+                    }
+                  },
+                ),
+                title: Text(locale.name),
+                subtitle: Text(locale.code, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                onTap: () {
+                  setState(() {
+                    _voiceService.setLocale(locale.id);
+                  });
+                  Navigator.pop(ctx);
+                },
+              )),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('取消'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _startTimer() {
@@ -124,6 +169,20 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
       appBar: AppBar(
         title: Text('步骤 ${provider.currentStepIndex + 1}/${plan.timeline.length}'),
         actions: [
+          // 方言选择按钮
+          if (_voiceEnabled)
+            TextButton.icon(
+              onPressed: () => _showLocaleMenu(context),
+              icon: const Icon(Icons.language, size: 18),
+              label: Text(
+                _voiceService.currentLocaleName,
+                style: const TextStyle(fontSize: 12),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey.shade700,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+            ),
           // 语音控制按钮
           _VoiceControlButton(
             isEnabled: _voiceEnabled,
