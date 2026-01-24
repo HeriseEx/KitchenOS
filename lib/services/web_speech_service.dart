@@ -105,6 +105,7 @@ class WebSpeechService extends ChangeNotifier {
   bool _isAvailable = false;
   bool _isListening = false;
   bool _isEnabled = false;
+  bool _isRestarting = false; // 防止重复重启
   String _lastWords = '';
   String _statusMessage = '未初始化';
   String _errorDetail = '';
@@ -159,12 +160,62 @@ class WebSpeechService extends ChangeNotifier {
       return false;
     }
   }
+  
+  /// 检查是否在安全上下文中 (HTTPS 或 localhost)
+  bool _isSecureContext() {
+    if (!kIsWeb) return false;
+    
+    try {
+      // 使用 window.isSecureContext 检查
+      final isSecure = globalContext['isSecureContext'];
+      if (isSecure != null) {
+        final result = (isSecure as JSBoolean).toDart;
+        debugPrint('WebSpeech: isSecureContext = $result');
+        return result;
+      }
+      // 如果无法检测，假设是安全的（让后续的权限请求来处理）
+      return true;
+    } catch (e) {
+      debugPrint('WebSpeech: Check secure context error: $e');
+      return true; // 出错时假设安全，让后续流程处理
+    }
+  }
+  
+  /// 检测是否是移动设备 (Android/iOS)
+  bool _isMobileDevice() {
+    if (!kIsWeb) return false;
+    
+    try {
+      final navigator = globalContext['navigator'] as JSObject?;
+      if (navigator != null) {
+        final userAgent = (navigator['userAgent'] as JSString?)?.toDart ?? '';
+        final isMobile = userAgent.contains('Android') || 
+                         userAgent.contains('iPhone') || 
+                         userAgent.contains('iPad') ||
+                         userAgent.contains('Mobile');
+        debugPrint('WebSpeech: isMobileDevice = $isMobile (UA: ${userAgent.substring(0, userAgent.length.clamp(0, 50))}...)');
+        return isMobile;
+      }
+    } catch (e) {
+      debugPrint('WebSpeech: Error checking mobile device: $e');
+    }
+    return false;
+  }
 
   /// 初始化语音识别
   Future<bool> initialize() async {
     try {
       if (!kIsWeb) {
         _statusMessage = '仅支持 Web 平台';
+        _isAvailable = false;
+        notifyListeners();
+        return false;
+      }
+      
+      // 检查是否在安全上下文中 (HTTPS 或 localhost)
+      if (!_isSecureContext()) {
+        _statusMessage = '需要安全连接';
+        _errorDetail = '请使用 HTTPS 或 localhost 访问';
         _isAvailable = false;
         notifyListeners();
         return false;
@@ -209,6 +260,7 @@ class WebSpeechService extends ChangeNotifier {
       _recognition!.onstart = ((JSAny? event) {
         debugPrint('WebSpeech: onstart');
         _isListening = true;
+        _isRestarting = false; // 成功启动，重置重启标志
         _lastWords = ''; // 清除上一次的文字
         _statusMessage = '正在聆听...';
         _errorDetail = '说 "下一步" 或 "完成"';
@@ -221,12 +273,31 @@ class WebSpeechService extends ChangeNotifier {
         _silenceTimer?.cancel(); // 取消计时器
         
         // 如果启用了持续监听，自动重启
-        if (_isEnabled) {
+        if (_isEnabled && !_isRestarting) {
+          _isRestarting = true;
           _statusMessage = '重新启动监听...';
           notifyListeners();
-          Future.delayed(const Duration(milliseconds: 500), () {
+          
+          // Android/移动设备使用更短的延迟 (250ms)，桌面端使用 500ms
+          final restartDelay = _isMobileDevice() ? 250 : 500;
+          debugPrint('WebSpeech: Scheduling restart in ${restartDelay}ms (mobile: ${_isMobileDevice()})');
+          
+          Future.delayed(Duration(milliseconds: restartDelay), () {
             if (_isEnabled && !_isListening) {
-              _startRecognition();
+              try {
+                _startRecognition();
+              } catch (e) {
+                debugPrint('WebSpeech: Restart failed: $e');
+                _isRestarting = false;
+                // 重试一次
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (_isEnabled && !_isListening) {
+                    _startRecognition();
+                  }
+                });
+              }
+            } else {
+              _isRestarting = false;
             }
           });
         } else {
@@ -343,21 +414,53 @@ class WebSpeechService extends ChangeNotifier {
     }
   }
   
+  /// 根据当前环境获取权限错误提示
+  String _getPermissionErrorDetail() {
+    try {
+      // 检查是否在安全上下文中 (HTTPS 或 localhost)
+      final location = globalContext['location'] as JSObject?;
+      if (location != null) {
+        final hostname = (location['hostname'] as JSString?)?.toDart ?? '';
+        final protocol = (location['protocol'] as JSString?)?.toDart ?? '';
+        
+        // GitHub Pages 或其他 HTTPS 站点
+        if (protocol == 'https:') {
+          return '请在浏览器中允许麦克风权限，然后刷新页面重试';
+        }
+        
+        // 本地开发 - localhost
+        if (hostname == 'localhost' || hostname == '127.0.0.1') {
+          return '请在浏览器中允许麦克风权限';
+        }
+        
+        // 使用 IP 地址访问 HTTP 站点 (非安全上下文)
+        return '请使用 localhost 或 HTTPS 访问，IP 地址不支持麦克风权限';
+      }
+    } catch (e) {
+      debugPrint('WebSpeech: Error checking location: $e');
+    }
+    return '请在浏览器中允许麦克风权限';
+  }
+
   /// 处理错误
   void _handleError(SpeechRecognitionErrorEvent event) {
     final error = event.error;
     debugPrint('WebSpeech: Error: $error');
     
+    bool shouldAutoRestart = false;
+    
     switch (error) {
       case 'not-allowed':
         _statusMessage = '麦克风权限被拒绝';
-        // 检查是否是非安全上下文导致的
-        _errorDetail = '请使用 localhost:8889 访问，而非 IP 地址';
+        // 根据当前环境提供适当的错误提示
+        _errorDetail = _getPermissionErrorDetail();
         _isEnabled = false;
         break;
       case 'no-speech':
         _statusMessage = '未检测到语音';
         _errorDetail = '请对着麦克风说话';
+        // 在移动设备上，no-speech 是常见的（静默超时），应该自动重启
+        shouldAutoRestart = _isMobileDevice() && _isEnabled;
         break;
       case 'network':
         _statusMessage = '网络错误';
@@ -370,6 +473,15 @@ class WebSpeechService extends ChangeNotifier {
       case 'aborted':
         _statusMessage = '识别被中断';
         _errorDetail = '';
+        // aborted 通常是我们主动中断的，如果还在启用状态则重启
+        shouldAutoRestart = _isEnabled;
+        break;
+      case 'service-not-allowed':
+        _statusMessage = '语音服务不可用';
+        _errorDetail = _isMobileDevice() 
+            ? '请确保 Google 应用已安装并有麦克风权限' 
+            : '浏览器语音服务不可用';
+        _isEnabled = false;
         break;
       default:
         _statusMessage = '识别错误';
@@ -378,6 +490,24 @@ class WebSpeechService extends ChangeNotifier {
     
     _isListening = false;
     notifyListeners();
+    
+    // 自动重启（对于可恢复的错误）
+    if (shouldAutoRestart && !_isRestarting) {
+      debugPrint('WebSpeech: Auto-restarting after error: $error');
+      _isRestarting = true;
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (_isEnabled && !_isListening) {
+          try {
+            _startRecognition();
+          } catch (e) {
+            debugPrint('WebSpeech: Auto-restart failed: $e');
+            _isRestarting = false;
+          }
+        } else {
+          _isRestarting = false;
+        }
+      });
+    }
   }
   
   /// 开始识别
