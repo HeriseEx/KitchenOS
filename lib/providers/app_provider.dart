@@ -55,8 +55,8 @@ class AppProvider extends ChangeNotifier {
       _recipes = await _api.getRecipes();
       _planHistory = await _api.getPlans();
 
-      // 如果没有菜谱，加载示例数据
-      if (_recipes.isEmpty) {
+      // 如果没有菜谱，或者菜谱数量过少（旧缓存），加载示例数据
+      if (_recipes.isEmpty || _recipes.length < 7) {
         _recipes = SampleData.getSampleRecipes();
         await _api.saveRecipes(_recipes);
       }
