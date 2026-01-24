@@ -74624,7 +74624,7 @@ c=m
 g=A.tT(c==null?null:c.mediaDevices)
 A.bZ().$1("WebSpeech: navigator.mediaDevices available: "+(g!=null))
 if(J.d(h,"denied")){n.r="\u9ea6\u514b\u98ce\u6743\u9650\u5df2\u62d2\u7edd"
-n.w="Permission API returned: denied"
+n.w="Permission API returned: denied\n(Check Google App permissions on Android)"
 n.b=!1
 n.N()
 q=!1
