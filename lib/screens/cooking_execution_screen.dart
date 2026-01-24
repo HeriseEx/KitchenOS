@@ -208,6 +208,19 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
               statusMessage: _voiceService.statusMessage,
               errorDetail: _voiceService.errorDetail,
             ),
+          
+          // Debug Version Info (Small overlay at bottom right or integrated)
+          const Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: EdgeInsets.only(right: 16, top: 4),
+              child: Text(
+                'v1.0.0+1 (Debug)', // Hardcoded for now, ideal to read from package_info
+                style: TextStyle(fontSize: 10, color: Colors.grey),
+              ),
+            ),
+          ),
+
           Expanded(
             child: ResponsiveLayout(
               mobileBody: _buildMobileLayout(context, provider, plan, currentNode),

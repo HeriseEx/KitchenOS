@@ -199,6 +199,30 @@ class WebSpeechService extends ChangeNotifier {
         return false;
       }
       
+      // Explicit permission query before starting (for clearer errors)
+      // This is a proactive check, actual request happens on start()
+      try {
+        final permissions = globalContext['navigator']['permissions'] as JSObject?;
+        if (permissions != null) {
+          final queryPromise = permissions.callMethod('query'.toJS, 
+              {'name': 'microphone'}.jsify());
+          
+          final status = await (queryPromise as JSPromise).toDart;
+          final state = (status as JSObject)['state'] as JSString;
+          debugPrint('WebSpeech: Initial microphone permission state: ${state.toDart}');
+          
+          if (state.toDart == 'denied') {
+             _statusMessage = '麦克风权限已拒绝';
+             _errorDetail = '请在浏览器设置中允许麦克风权限';
+             _isAvailable = false; // Mark as unavailable until user fixes it
+             notifyListeners();
+             return false;
+          }
+        }
+      } catch (e) {
+        debugPrint('WebSpeech: Permission query failed (ignoring): $e');
+      }
+      
       _statusMessage = '语音识别就绪';
       _errorDetail = '点击麦克风开始';
       _isAvailable = true;
