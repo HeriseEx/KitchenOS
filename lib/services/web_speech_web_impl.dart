@@ -211,12 +211,17 @@ class WebSpeechService extends ChangeNotifier {
           
           final status = await (queryPromise as JSPromise).toDart;
           final state = (status as JSObject)['state'] as JSString;
-          debugPrint('WebSpeech: Initial microphone permission state: ${state.toDart}');
+          final stateStr = state.toDart;
+          debugPrint('WebSpeech: Initial microphone permission state: $stateStr');
           
-          if (state.toDart == 'denied') {
+          // Check navigator.mediaDevices if available for more info
+          final mediaDevices = navigator?['mediaDevices'] as JSObject?;
+          debugPrint('WebSpeech: navigator.mediaDevices available: ${mediaDevices != null}');
+          
+          if (stateStr == 'denied') {
              _statusMessage = '麦克风权限已拒绝';
-             _errorDetail = '请在浏览器设置中允许麦克风权限';
-             _isAvailable = false; // Mark as unavailable until user fixes it
+             _errorDetail = 'Permission API returned: denied';
+             _isAvailable = false; 
              notifyListeners();
              return false;
           }

@@ -202,11 +202,32 @@ class _CookingExecutionScreenState extends State<CookingExecutionScreen> {
         children: [
           // 语音状态提示条
           if (_voiceEnabled)
-            _VoiceStatusBar(
-              isListening: _voiceService.isListening,
-              lastWords: _voiceService.lastWords,
-              statusMessage: _voiceService.statusMessage,
-              errorDetail: _voiceService.errorDetail,
+            GestureDetector(
+              onTap: () {
+                if (_voiceService.errorDetail.isNotEmpty) {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('语音识别错误'),
+                      content: SingleChildScrollView(
+                        child: Text(_voiceService.errorDetail),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('关闭'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+              child: _VoiceStatusBar(
+                isListening: _voiceService.isListening,
+                lastWords: _voiceService.lastWords,
+                statusMessage: _voiceService.statusMessage,
+                errorDetail: _voiceService.errorDetail,
+              ),
             ),
           
           // Debug Version Info (Small overlay at bottom right or integrated)
