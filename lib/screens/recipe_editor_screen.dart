@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
 import '../utils/utils.dart';
+import '../widgets/widgets.dart';
 
 enum EditorMode { create, edit, derive }
 
@@ -99,6 +100,11 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
         title: Text(_title),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.paste_rounded),
+            tooltip: '导入 JSON',
+            onPressed: _importJson,
+          ),
           TextButton.icon(
             onPressed: _saveRecipe,
             icon: const Icon(Icons.check),
@@ -384,6 +390,31 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     );
     if (result != null && result.isNotEmpty && !_tags.contains(result)) {
       setState(() => _tags.add(result));
+    }
+  }
+
+  void _importJson() async {
+    final importedRecipe = await showDialog<Recipe>(
+      context: context,
+      builder: (ctx) => const PasteJsonDialog(),
+    );
+
+    if (importedRecipe != null) {
+      setState(() {
+        _nameController.text = importedRecipe.name;
+        _descriptionController.text = importedRecipe.description ?? '';
+        _servingsController.text = importedRecipe.servings.toString();
+        _estimatedMinutesController.text = importedRecipe.estimatedMinutes.toString();
+        _difficulty = importedRecipe.difficulty ?? '简单';
+        _ingredients = List.from(importedRecipe.ingredients);
+        _steps = List.from(importedRecipe.steps);
+        _tags = List.from(importedRecipe.tags);
+        _updateStepIndexes();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('导入成功')),
+      );
     }
   }
 

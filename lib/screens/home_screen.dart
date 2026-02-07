@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../utils/utils.dart';
 import '../widgets/responsive_layout.dart';
+import '../widgets/widgets.dart';
 
 /// 主页 - 菜谱列表 (iOS 17 Inspired Responsive Redesign)
 class HomeScreen extends StatelessWidget {
@@ -59,7 +60,7 @@ class HomeScreen extends StatelessWidget {
               actions: [
                   _GlassActionButton(
                     icon: Icons.add,
-                    onTap: () => Navigator.pushNamed(context, '/recipe-editor'),
+                    onTap: () => _showCreateOptions(context),
                     tooltip: '新增菜谱',
                   ),
                   const SizedBox(width: 8),
@@ -145,6 +146,17 @@ class HomeScreen extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const _RecipeSelectorSheet(),
+    );
+  }
+
+  void _showCreateOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _BlurModal(
+        child: _CreateOptionsSheet(),
+      ),
     );
   }
 }
@@ -515,6 +527,131 @@ class _RecipeSettingsButton extends StatelessWidget {
             child: Text('删除', style: TextStyle(color: Colors.red[400])),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CreateOptionsSheet extends StatelessWidget implements _ScrollableWidget {
+  final ScrollController? scrollController;
+
+  const _CreateOptionsSheet({this.scrollController});
+
+  @override
+  Widget copyWithController(ScrollController controller) {
+    return _CreateOptionsSheet(scrollController: controller);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      controller: scrollController,
+      padding: const EdgeInsets.all(24),
+      children: [
+        Center(
+          child: Container(
+            width: 40,
+            height: 5,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2.5),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          '新增菜谱',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '选择您想要创建菜谱的方式',
+          style: TextStyle(color: Colors.grey[600], fontSize: 16),
+        ),
+        const SizedBox(height: 32),
+        _OptionTile(
+          icon: Icons.edit_note,
+          title: '手动创建',
+          subtitle: '从空白开始填写',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.pushNamed(context, '/recipe-editor');
+          },
+        ),
+        const SizedBox(height: 16),
+        _OptionTile(
+          icon: Icons.data_object,
+          title: '导入 JSON',
+          subtitle: '粘贴 JSON 自动生成',
+          onTap: () async {
+            Navigator.pop(context); // Close sheet
+            final recipe = await showDialog<Recipe>(
+              context: context,
+              builder: (c) => const PasteJsonDialog(),
+            );
+            if (recipe != null) {
+              Navigator.pushNamed(
+                context, 
+                '/recipe-editor', 
+                arguments: {'recipe': recipe, 'mode': 'create'},
+              );
+            }
+          },
+        ),
+        SizedBox(height: MediaQuery.of(context).padding.bottom + 40),
+      ],
+    );
+  }
+}
+
+class _OptionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _OptionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Theme.of(context).primaryColor),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
     );
   }
