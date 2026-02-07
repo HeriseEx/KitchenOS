@@ -139,7 +139,7 @@ class AppTheme {
         ),
       ),
 
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: surfaceColor,
         margin: EdgeInsets.zero,
@@ -227,7 +227,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: darkSurface,
         shape: RoundedRectangleBorder(
