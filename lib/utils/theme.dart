@@ -5,13 +5,15 @@ import 'package:flutter/services.dart';
 /// iOS 17 Inspired Theme
 class AppTheme {
   // Premium Luxury Colors
-  static const Color primaryColor = Color(0xFF2C2C2E); // Deep Matte Black for luxury base
+  static const Color primaryColor =
+      Color(0xFF2C2C2E); // Deep Matte Black for luxury base
   static const Color accentColor = Color(0xFFD4AF37); // Champagne Gold
   static const Color secondaryColor = Color(0xFF8E8E93); // Metallic Gray
-  
+
   static const Color surfaceColor = Colors.white;
-  static const Color backgroundColor = Color(0xFFF5F5F7); // High-end paper white/gray
-  
+  static const Color backgroundColor =
+      Color(0xFFF5F5F7); // High-end paper white/gray
+
   // Semantic Colors (Refined)
   static const Color errorColor = Color(0xFFFF453A); // Vibrant Red
   static const Color warningColor = Color(0xFFFFD60A); // Vibrant Yellow
@@ -36,7 +38,7 @@ class AppTheme {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-  
+
   static const LinearGradient glassGradient = LinearGradient(
     colors: [Colors.white54, Colors.white24],
     begin: Alignment.topLeft,
@@ -45,35 +47,35 @@ class AppTheme {
 
   // Layered Shadows for Depth
   static List<BoxShadow> get softShadow => [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.03),
-      blurRadius: 10,
-      offset: const Offset(0, 4),
-    ),
-    BoxShadow(
-      color: Colors.black.withOpacity(0.02),
-      blurRadius: 20,
-      offset: const Offset(0, 8),
-    ),
-  ];
+        BoxShadow(
+          color: Colors.black.withOpacity(0.03),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+        BoxShadow(
+          color: Colors.black.withOpacity(0.02),
+          blurRadius: 20,
+          offset: const Offset(0, 8),
+        ),
+      ];
 
   static List<BoxShadow> get glowShadow => [
-    BoxShadow(
-      color: accentColor.withOpacity(0.3),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
-      spreadRadius: -4,
-    ),
-  ];
+        BoxShadow(
+          color: accentColor.withOpacity(0.3),
+          blurRadius: 24,
+          offset: const Offset(0, 8),
+          spreadRadius: -4,
+        ),
+      ];
 
   static List<BoxShadow> get floatingShadow => [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.08),
-      blurRadius: 30,
-      offset: const Offset(0, 15),
-      spreadRadius: 0,
-    ),
-  ];
+        BoxShadow(
+          color: Colors.black.withOpacity(0.08),
+          blurRadius: 30,
+          offset: const Offset(0, 15),
+          spreadRadius: 0,
+        ),
+      ];
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -89,41 +91,39 @@ class AppTheme {
         error: errorColor,
         brightness: Brightness.light,
       ),
-      
       fontFamily: 'San Francisco',
       textTheme: const TextTheme(
         displayLarge: TextStyle(
-          fontSize: 34, 
-          fontWeight: FontWeight.w800, 
-          letterSpacing: -1.0, 
+          fontSize: 34,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -1.0,
           color: Color(0xFF1C1C1E),
           height: 1.1,
         ),
         displayMedium: TextStyle(
-          fontSize: 28, 
-          fontWeight: FontWeight.w700, 
-          letterSpacing: -0.8, 
+          fontSize: 28,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.8,
           color: Color(0xFF1C1C1E),
         ),
         titleLarge: TextStyle(
-          fontSize: 22, 
-          fontWeight: FontWeight.w700, 
-          letterSpacing: -0.6, 
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.6,
           color: Color(0xFF1C1C1E),
         ),
         bodyLarge: TextStyle(
-          fontSize: 17, 
-          color: Color(0xFF3A3A3C), 
+          fontSize: 17,
+          color: Color(0xFF3A3A3C),
           letterSpacing: -0.3,
           height: 1.5,
         ),
         bodyMedium: TextStyle(
-          fontSize: 15, 
+          fontSize: 15,
           color: Color(0xFF3A3A3C),
           height: 1.4,
         ),
       ),
-
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -138,8 +138,7 @@ class AppTheme {
           letterSpacing: -0.4,
         ),
       ),
-
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         elevation: 0,
         color: surfaceColor,
         margin: EdgeInsets.zero,
@@ -148,7 +147,6 @@ class AppTheme {
           side: BorderSide(color: Colors.black.withOpacity(0.03), width: 1),
         ),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
@@ -166,7 +164,6 @@ class AppTheme {
           ),
         ),
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
@@ -182,22 +179,20 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: primaryColor, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         hintStyle: TextStyle(color: Colors.grey[400]),
       ),
-      
       chipTheme: ChipThemeData(
         backgroundColor: Colors.grey[100],
         shape: const StadiumBorder(side: BorderSide.none),
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
       ),
-      
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Colors.transparent,
         modalBackgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      
       dividerTheme: DividerThemeData(
         color: Colors.black.withOpacity(0.06),
         thickness: 1,
@@ -209,7 +204,7 @@ class AppTheme {
   static ThemeData get darkTheme {
     const darkBg = Color(0xFF000000);
     const darkSurface = Color(0xFF1C1C1E); // iOS Dark Gray 6
-    
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -227,7 +222,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         elevation: 0,
         color: darkSurface,
         shape: RoundedRectangleBorder(
