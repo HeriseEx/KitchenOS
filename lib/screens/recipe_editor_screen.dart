@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Step;
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
@@ -415,7 +415,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
       servings: int.parse(_servingsController.text),
       estimatedMinutes: int.parse(_estimatedMinutesController.text),
       ingredients: _ingredients,
-      steps: _steps.map((s) => s.copyWith(recipeId: recipeId)).toList(),
+      steps: _steps.map<Step>((Step s) => s.copyWith(recipeId: recipeId)).toList(),
       tags: _tags,
       difficulty: _difficulty,
     );

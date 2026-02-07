@@ -527,30 +527,40 @@ class _BlurModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalMargin = screenWidth > 600 ? 40.0 : 16.0;
+    
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
-      maxChildSize: 0.95,
+      maxChildSize: 0.92,
       builder: (context, scrollController) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.85),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                  )
-                ]
+        return Container(
+          margin: EdgeInsets.fromLTRB(horizontalMargin, 0, horizontalMargin, 24),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.92),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 30,
+                      spreadRadius: 5,
+                    )
+                  ],
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: child is _ScrollableWidget 
+                  ? (child as _ScrollableWidget).copyWithController(scrollController)
+                  : child,
               ),
-              child: child is _ScrollableWidget 
-                ? (child as _ScrollableWidget).copyWithController(scrollController)
-                : child,
             ),
           ),
         );

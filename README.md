@@ -12,7 +12,9 @@
 
 ### UI界面
 - **UI-00 厨房配置向导**: 首次使用引导配置厨房装备
-- **主页**: 菜谱列表和选择
+- **主页**: 菜谱列表和选择，支持添加自定义菜谱（+按钮）
+- **菜谱详情弹窗**: 浮动卡片样式，四周留白，设置菜单支持编辑/派生/删除
+- **菜谱编辑器**: 完整的菜谱CRUD功能（创建/编辑/派生）
 - **UI-05a 资源确认**: 烹饪前确认可用装备
 - **UI-05 计划预览**: 甘特图展示烹饪计划
 - **UI-06 烹饪执行**: 实时计时和步骤指导
@@ -45,6 +47,7 @@ kitchen_os/
 │   │   ├── resource_confirm_screen.dart # 资源确认
 │   │   ├── plan_preview_screen.dart     # 计划预览
 │   │   ├── cooking_execution_screen.dart # 烹饪执行
+│   │   ├── recipe_editor_screen.dart    # 菜谱编辑器
 │   │   └── screens.dart       # 导出
 │   ├── utils/                 # 工具类
 │   │   ├── theme.dart         # 主题配置
@@ -128,6 +131,8 @@ flutter run
 ## 路线图
 
 - [x] Sprint 1-2: DB + 调度引擎 + API
-- [ ] Sprint 3: Flutter首页 + 甘特图
+- [x] Sprint 3: Flutter首页 + 甘特图
+- [x] 菜谱编辑器: 创建/编辑/派生/删除功能
+- [x] Ubuntu开发环境支持
 - [ ] Sprint 4: 联调 + Cloud Run部署
 - [ ] Sprint 5: 容错重排 + 可观测性
