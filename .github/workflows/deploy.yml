@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ mvp ]
+    branches: [ mvp, ubuntu ]
 
 permissions:
   contents: write
