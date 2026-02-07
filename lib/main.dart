@@ -75,6 +75,24 @@ class KitchenOSApp extends StatelessWidget {
         return MaterialPageRoute(
           builder: (_) => const CookingExecutionScreen(),
         );
+      case '/recipe-editor':
+        final args = settings.arguments as Map<String, dynamic>?;
+        final recipe = args?['recipe'] as Recipe?;
+        final modeStr = args?['mode'] as String? ?? 'create';
+        EditorMode mode;
+        switch (modeStr) {
+          case 'edit':
+            mode = EditorMode.edit;
+            break;
+          case 'derive':
+            mode = EditorMode.derive;
+            break;
+          default:
+            mode = EditorMode.create;
+        }
+        return MaterialPageRoute(
+          builder: (_) => RecipeEditorScreen(recipe: recipe, mode: mode),
+        );
       default:
         return MaterialPageRoute(
           builder: (_) => const HomeScreen(),

@@ -5,3 +5,5 @@ export 'plan_preview_screen.dart';
 export 'cooking_execution_screen.dart';
 export 'recommendation_screen.dart';
 export 'ingredient_confirm_screen.dart';
+export 'recipe_editor_screen.dart';
+

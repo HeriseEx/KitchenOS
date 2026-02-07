@@ -56,7 +56,13 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                actions: [
+              actions: [
+                  _GlassActionButton(
+                    icon: Icons.add,
+                    onTap: () => Navigator.pushNamed(context, '/recipe-editor'),
+                    tooltip: '新增菜谱',
+                  ),
+                  const SizedBox(width: 8),
                   _GlassActionButton(
                     icon: Icons.calendar_today_outlined,
                     onTap: () => Navigator.pushNamed(context, '/recommendation'),
@@ -425,6 +431,95 @@ class _DifficultyBadge extends StatelessWidget {
   }
 }
 
+class _RecipeSettingsButton extends StatelessWidget {
+  final Recipe recipe;
+
+  const _RecipeSettingsButton({required this.recipe});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      icon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.more_horiz, color: Colors.grey[600], size: 20),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      offset: const Offset(0, 40),
+      onSelected: (value) {
+        Navigator.pop(context);
+        if (value == 'edit') {
+          Navigator.pushNamed(context, '/recipe-editor', arguments: {'recipe': recipe, 'mode': 'edit'});
+        } else if (value == 'derive') {
+          Navigator.pushNamed(context, '/recipe-editor', arguments: {'recipe': recipe, 'mode': 'derive'});
+        } else if (value == 'delete') {
+          _showDeleteConfirm(context);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'edit',
+          child: Row(
+            children: [
+              Icon(Icons.edit_outlined, size: 20, color: Theme.of(context).primaryColor),
+              const SizedBox(width: 12),
+              const Text('编辑菜谱'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'derive',
+          child: Row(
+            children: [
+              Icon(Icons.copy_outlined, size: 20, color: Colors.orange[700]),
+              const SizedBox(width: 12),
+              const Text('派生新菜谱'),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline, size: 20, color: Colors.red[400]),
+              const SizedBox(width: 12),
+              Text('删除菜谱', style: TextStyle(color: Colors.red[400])),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDeleteConfirm(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('确认删除'),
+        content: Text('确定要删除「${recipe.name}」吗？此操作不可撤销。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<AppProvider>().deleteRecipe(recipe.id);
+            },
+            child: Text('删除', style: TextStyle(color: Colors.red[400])),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BlurModal extends StatelessWidget {
   final Widget child;
 
@@ -489,15 +584,23 @@ class _RecipeDetailSheet extends StatelessWidget implements _ScrollableWidget {
       controller: scrollController,
       padding: const EdgeInsets.all(24),
       children: [
-        Center(
-          child: Container(
-            width: 40,
-            height: 5,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2.5),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+              ),
             ),
-          ),
+            _RecipeSettingsButton(recipe: recipe),
+          ],
         ),
         const SizedBox(height: 24),
         Text(
@@ -614,7 +717,7 @@ class _RecipeDetailSheet extends StatelessWidget implements _ScrollableWidget {
             child: const Text('开始烹饪'),
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: MediaQuery.of(context).padding.bottom + 40),
       ],
     );
   }

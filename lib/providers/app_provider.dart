@@ -207,4 +207,67 @@ class AppProvider extends ChangeNotifier {
     _isExecuting = false;
     notifyListeners();
   }
+
+  /// 添加新菜谱
+  Future<void> addRecipe(Recipe recipe) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _recipes.add(recipe);
+      await _api.saveRecipes(_recipes);
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// 更新菜谱
+  Future<void> updateRecipe(Recipe recipe) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final index = _recipes.indexWhere((r) => r.id == recipe.id);
+      if (index != -1) {
+        _recipes[index] = recipe;
+        await _api.saveRecipes(_recipes);
+      }
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// 删除菜谱
+  Future<void> deleteRecipe(String recipeId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _recipes.removeWhere((r) => r.id == recipeId);
+      await _api.saveRecipes(_recipes);
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// 根据ID获取菜谱
+  Recipe? getRecipeById(String id) {
+    try {
+      return _recipes.firstWhere((r) => r.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
 }
